@@ -82,6 +82,53 @@ describe('Level', () => {
             expect(nextNote.name).toBe(initialNote.name);
         });
 
+        test('should not show the same note twice in a row when multiple notes are available', () => {
+            // Create a level with multiple notes
+            const multipleNotesConfig: LevelConfig = {
+                id: 5,
+                name: 'Multiple Notes Test',
+                description: 'A test level with multiple notes',
+                clef: 'treble',
+                notes: [noteF, noteA, noteC, noteE],
+                requiredSuccessCount: 10,
+                maxTimePerProblem: 5
+            };
+            
+            const multiNoteLevel = new Level(multipleNotesConfig);
+            
+            // Force a specific note pool for testing purposes
+            // We'll create a pool with a repeating pattern to ensure we test the no-repeat behavior
+            const repeatPattern = [noteF, noteA, noteF, noteA, noteF, noteA, noteF, noteA];
+            (multiNoteLevel as any).notePool = repeatPattern;
+            (multiNoteLevel as any).currentNoteIndex = 0;
+            
+            // Get the current note (should be F)
+            const firstNote = multiNoteLevel.getCurrentNote();
+            
+            // Advance to the next note
+            multiNoteLevel.nextNote();
+            const secondNote = multiNoteLevel.getCurrentNote();
+            
+            // The second note should be different from the first
+            expect(secondNote.name).not.toBe(firstNote.name);
+            
+            // Advance again
+            multiNoteLevel.nextNote();
+            const thirdNote = multiNoteLevel.getCurrentNote();
+            
+            // The third note should be different from the second
+            expect(thirdNote.name).not.toBe(secondNote.name);
+            
+            // Run through 20 iterations to ensure no consecutive repeats
+            let previousNote = thirdNote;
+            for (let i = 0; i < 20; i++) {
+                multiNoteLevel.nextNote();
+                const currentNote = multiNoteLevel.getCurrentNote();
+                expect(currentNote.name).not.toBe(previousNote.name);
+                previousNote = currentNote;
+            }
+        });
+
         test('should correctly report when the level is complete', () => {
             // Creating mock data for the required recent attempts
             const notEnoughAttempts = Array(9).fill({

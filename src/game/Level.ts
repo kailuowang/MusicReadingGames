@@ -23,7 +23,30 @@ export class Level {
     }
     
     public nextNote(): void {
-        this.currentNoteIndex = (this.currentNoteIndex + 1) % this.notePool.length;
+        // Get the current note before we change the index
+        const currentNote = this.getCurrentNote();
+        
+        // Find the next note that's different from the current one
+        let nextIndex = (this.currentNoteIndex + 1) % this.notePool.length;
+        
+        // If we have more than one note in the pool, ensure we don't repeat the same note
+        if (this.notePool.length > 1) {
+            // Keep incrementing the index until we find a different note
+            while (this.isSameNote(currentNote, this.notePool[nextIndex])) {
+                nextIndex = (nextIndex + 1) % this.notePool.length;
+            }
+        }
+        
+        this.currentNoteIndex = nextIndex;
+    }
+    
+    /**
+     * Check if two notes are the same (same name, octave, and accidental)
+     */
+    private isSameNote(note1: Note, note2: Note): boolean {
+        return note1.name === note2.name && 
+               note1.octave === note2.octave && 
+               note1.accidental === note2.accidental;
     }
     
     public isComplete(recentAttempts: { isCorrect: boolean; timeSpent: number }[]): boolean {
