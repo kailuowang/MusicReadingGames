@@ -111,8 +111,8 @@ export class PianoKeyboardRenderer {
         if (this.showNoteNames) {
             const noteLabel = document.createElement('span');
             noteLabel.className = 'note-name';
-            // Show octave in superscript
-            noteLabel.innerHTML = `C<sup>${thirdOctaveNum}</sup>`;
+            // Show only the note name without octave
+            noteLabel.textContent = 'C';
             cKey.appendChild(noteLabel);
         }
         
@@ -162,8 +162,8 @@ export class PianoKeyboardRenderer {
             if (this.showNoteNames) {
                 const noteLabel = document.createElement('span');
                 noteLabel.className = 'note-name';
-                // Show octave in superscript
-                noteLabel.innerHTML = `${noteName}<sup>${octave}</sup>`;
+                // Show only the note name without octave
+                noteLabel.textContent = noteName;
                 key.appendChild(noteLabel);
             }
             
