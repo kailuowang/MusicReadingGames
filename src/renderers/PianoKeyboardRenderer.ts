@@ -1,10 +1,12 @@
 import { Note } from '../models/Note';
+import { NoteRepository } from '../models/NoteRepository';
 
 export class PianoKeyboardRenderer {
     private container: HTMLElement;
     private showNoteNames: boolean = true;
     private showAllKeys: boolean = false;
     private currentClef: 'treble' | 'bass' = 'treble';
+    private noteRepository: NoteRepository;
     
     // Define key colors (white for natural notes, black for accidentals)
     private readonly whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -23,6 +25,7 @@ export class PianoKeyboardRenderer {
             throw new Error(`Container element with id '${containerId}' not found`);
         }
         this.container = container;
+        this.noteRepository = NoteRepository.getInstance();
     }
     
     /**
@@ -98,50 +101,10 @@ export class PianoKeyboardRenderer {
         const thirdOctave = document.createElement('div');
         thirdOctave.className = 'octave third-octave';
         
-        const cKey = document.createElement('div');
-        cKey.className = 'piano-key white-key';
-        
+        // Create the C key for the third octave
         const thirdOctaveNum = startOctave + 2;
+        this.createPianoKey(thirdOctave, 'C', thirdOctaveNum, notes, callback, 'white-key');
         
-        // Add middle C indicator if applicable
-        if (thirdOctaveNum === this.middleC && this.currentClef === 'bass') {
-            cKey.classList.add('middle-c');
-        }
-        
-        // Find if this note is in our available notes - match by name AND octave
-        const matchingCNote = notes.find(n => {
-            return n.name === 'C' && (n.octave === thirdOctaveNum);
-        });
-        
-        if (matchingCNote || this.showAllKeys) {
-            if (matchingCNote) {
-                cKey.classList.add('selectable');
-                
-                // Create a copy of the note with octave information
-                const noteWithOctave: Note = {
-                    ...matchingCNote,
-                    octave: thirdOctaveNum
-                };
-                
-                cKey.addEventListener('click', () => callback(noteWithOctave));
-            } else {
-                // If showing all keys but this one isn't in the available notes
-                cKey.classList.add('unavailable');
-            }
-        } else {
-            cKey.classList.add('disabled');
-        }
-        
-        // Add note name if showNoteNames is true (only for white keys)
-        if (this.showNoteNames) {
-            const noteLabel = document.createElement('span');
-            noteLabel.className = 'note-name';
-            // Show only the note name without octave
-            noteLabel.textContent = 'C';
-            cKey.appendChild(noteLabel);
-        }
-        
-        thirdOctave.appendChild(cKey);
         keyboardKeys.appendChild(thirdOctave);
         
         // Add the keyboard to the container
@@ -155,58 +118,13 @@ export class PianoKeyboardRenderer {
     private createOctaveKeys(octaveContainer: HTMLElement, octave: number, availableNotes: Note[], callback: (note: Note) => void): void {
         // Create white keys first (so they appear behind black keys)
         for (const noteName of this.whiteKeys) {
-            const fullNoteName = `${noteName}${octave}`;
-            const key = document.createElement('div');
-            key.className = 'piano-key white-key';
-            
-            // Add middle C indicator
-            if (noteName === 'C' && octave === this.middleC) {
-                key.classList.add('middle-c');
-            }
-            
-            // Find if this note is in our available notes - match by name AND octave 
-            const matchingNote = availableNotes.find(n => {
-                return n.name === noteName && (n.octave === octave);
-            });
-            
-            if (matchingNote || this.showAllKeys) {
-                if (matchingNote) {
-                    key.classList.add('selectable');
-                    
-                    // Create a copy of the note with octave information
-                    const noteWithOctave: Note = {
-                        ...matchingNote,
-                        octave: octave
-                    };
-                    
-                    key.addEventListener('click', () => callback(noteWithOctave));
-                } else {
-                    // If showing all keys but this one isn't in the available notes
-                    key.classList.add('unavailable');
-                }
-            } else {
-                key.classList.add('disabled');
-            }
-            
-            // Add note name if showNoteNames is true (only for white keys)
-            if (this.showNoteNames) {
-                const noteLabel = document.createElement('span');
-                noteLabel.className = 'note-name';
-                // Show only the note name without octave
-                noteLabel.textContent = noteName;
-                key.appendChild(noteLabel);
-            }
-            
-            // Add the key to the octave container
-            octaveContainer.appendChild(key);
+            this.createPianoKey(octaveContainer, noteName, octave, availableNotes, callback, 'white-key');
         }
         
         // Create black keys (positioned absolutely over white keys)
-        for (const noteName of this.blackKeys) {
-            const baseName = noteName.charAt(0);
-            const fullNoteName = `${noteName}${octave}`;
-            const key = document.createElement('div');
-            key.className = 'piano-key black-key';
+        for (const blackKeyName of this.blackKeys) {
+            const baseName = blackKeyName.charAt(0);
+            const key = this.createPianoKey(octaveContainer, baseName, octave, availableNotes, callback, 'black-key', 'sharp');
             
             // Position black keys correctly
             switch(baseName) {
@@ -216,37 +134,83 @@ export class PianoKeyboardRenderer {
                 case 'G': key.style.left = '67%'; break;
                 case 'A': key.style.left = '81%'; break;
             }
-            
-            // Find if this note (with sharp/flat) is in our available notes
-            const matchingNote = availableNotes.find(n => {
-                return n.name === baseName && n.accidental === 'sharp' && 
-                       (n.octave === octave);
-            });
-            
-            if (matchingNote || this.showAllKeys) {
-                if (matchingNote) {
-                    key.classList.add('selectable');
-                    
-                    // Create a copy of the note with octave information
-                    const noteWithOctave: Note = {
-                        ...matchingNote,
-                        octave: octave
-                    };
-                    
-                    key.addEventListener('click', () => callback(noteWithOctave));
-                } else {
-                    // If showing all keys but this one isn't in the available notes
-                    key.classList.add('unavailable');
-                }
-            } else {
-                key.classList.add('disabled');
-            }
-            
-            // No note names for black keys as requested
-            
-            // Add the key to the octave container
-            octaveContainer.appendChild(key);
         }
+    }
+    
+    /**
+     * Create a single piano key element
+     */
+    private createPianoKey(
+        container: HTMLElement, 
+        noteName: string, 
+        octave: number, 
+        availableNotes: Note[], 
+        callback: (note: Note) => void,
+        keyClass: string,
+        accidental?: 'sharp' | 'flat' | 'natural'
+    ): HTMLElement {
+        
+        const key = document.createElement('div');
+        key.className = `piano-key ${keyClass}`;
+        
+        // Add middle C indicator if applicable - only for natural C (not C#)
+        if (noteName === 'C' && octave === this.middleC && !accidental) {
+            key.classList.add('middle-c');
+        }
+        
+        // Get the note from repository
+        const note = this.noteRepository.getNote(noteName, accidental, octave);
+        if (!note) return key; // Early return if note not found
+        
+        // Find if this note is in our available notes
+        const matchingNote = this.findMatchingNote(note, availableNotes);
+        
+        // Simple logic branch for determining key state
+        if (this.showAllKeys || matchingNote) {
+            // When showAllKeys is true, all keys are selectable
+            key.classList.add('selectable');
+            key.addEventListener('click', () => callback(note));
+        }  else {
+            // Not in available notes and not showing all keys
+            key.classList.add('disabled');
+        }
+        
+        // Add note name if showNoteNames is true (only for white keys)
+        if (this.showNoteNames && keyClass === 'white-key') {
+            const noteLabel = document.createElement('span');
+            noteLabel.className = 'note-name';
+            // Show only the note name without octave
+            noteLabel.textContent = noteName;
+            key.appendChild(noteLabel);
+        }
+        
+        // Add the key to the container
+        container.appendChild(key);
+        
+        return key;
+    }
+    
+    /**
+     * Find a matching note in an array of available notes
+     * Match by name, accidental, and octave
+     */
+    private findMatchingNote(note: Note, availableNotes: Note[]): Note | undefined {
+        // Enhanced matching that handles edge cases better
+        return availableNotes.find(n => {
+            // Match by name (case insensitive)
+            const nameMatches = n.name.toLowerCase() === note.name.toLowerCase();
+            
+            // Match by octave
+            const octaveMatches = n.octave === note.octave;
+            
+            // Match by accidental, handling undefined and null cases
+            const accidentalMatches = 
+                (n.accidental === note.accidental) || 
+                (!n.accidental && !note.accidental);
+            
+           
+            return nameMatches && octaveMatches && accidentalMatches;
+        });
     }
     
     /**

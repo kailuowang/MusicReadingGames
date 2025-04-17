@@ -5,6 +5,7 @@ import { LevelData } from '../data/LevelData';
 import { SheetMusicRenderer } from '../renderers/SheetMusicRenderer';
 import { StorageManager } from '../utils/StorageManager';
 import { PianoKeyboardRenderer } from '../renderers/PianoKeyboardRenderer';
+import { NoteRepository } from '../models/NoteRepository';
 
 export class Game {
     private state: GameState;
@@ -12,6 +13,7 @@ export class Game {
     private sheetRenderer: SheetMusicRenderer;
     private keyboardRenderer: PianoKeyboardRenderer;
     private storageManager: StorageManager;
+    private noteRepository: NoteRepository;
     private noteOptionsContainer: HTMLElement;
     private feedbackElement: HTMLElement;
     private streakElement: HTMLElement;
@@ -27,6 +29,9 @@ export class Game {
             noteHistory: {},
             recentAttempts: []
         };
+        
+        // Initialize the NoteRepository first (singleton)
+        this.noteRepository = NoteRepository.getInstance();
         
         this.sheetRenderer = new SheetMusicRenderer('sheet-music');
         this.keyboardRenderer = new PianoKeyboardRenderer('note-options');
