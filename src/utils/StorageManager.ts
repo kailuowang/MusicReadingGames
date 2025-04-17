@@ -22,11 +22,44 @@ export class StorageManager {
             if (serializedState === null) {
                 return null;
             }
-            return JSON.parse(serializedState) as GameState;
+            
+            const parsedState = JSON.parse(serializedState);
+            
+            // Validate state to ensure it has the required structure
+            if (!this.isValidGameState(parsedState)) {
+                console.warn('Invalid game state found in storage, clearing...');
+                this.clearState();
+                return null;
+            }
+            
+            return parsedState as GameState;
         } catch (error) {
-            console.error('Failed to load game state:', error);
+            console.error('Failed to load game state, clearing corrupt data:', error);
+            this.clearState();
             return null;
         }
+    }
+    
+    private isValidGameState(state: any): boolean {
+        // Basic structure validation
+        if (!state || typeof state !== 'object') return false;
+        if (typeof state.currentLevelIndex !== 'number') return false;
+        if (typeof state.isGameRunning !== 'boolean') return false;
+        
+        // Check noteHistory and recentAttempts structure
+        if (!state.noteHistory || typeof state.noteHistory !== 'object') return false;
+        
+        // Initialize recentAttempts if missing
+        if (!state.recentAttempts) {
+            state.recentAttempts = [];
+        }
+        
+        // If recentAttempts exists, ensure it's an array
+        if (!Array.isArray(state.recentAttempts)) {
+            state.recentAttempts = [];
+        }
+        
+        return true;
     }
     
     public clearState(): void {

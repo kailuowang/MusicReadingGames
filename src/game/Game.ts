@@ -57,6 +57,12 @@ export class Game {
     }
     
     public reset(): void {
+        console.log('Resetting game and clearing storage...');
+        
+        // Clear storage first
+        this.storageManager.clearState();
+        
+        // Reset state
         this.state = {
             currentLevelIndex: 0,
             isGameRunning: false,
@@ -68,7 +74,8 @@ export class Game {
         this.clearFeedback();
         this.clearNoteOptions();
         this.sheetRenderer.clear();
-        this.storageManager.saveState(this.state);
+        
+        console.log('Game reset complete.');
     }
     
     private loadLevel(levelIndex: number): void {
