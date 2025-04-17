@@ -24,8 +24,7 @@
         <div id="controls">
             <button id="start-button">Start Game</button>
             <button id="reset-button">Reset</button>
-            <button id="clear-storage-button">Clear Storage</button>
-            <button id="stats-button">View Stats</button>
+            <button id="stats-button">Game Stats</button>
         </div>
     </div>
 
@@ -34,10 +33,32 @@
         <div class="popup-content">
             <span class="close-button">&times;</span>
             <h2>Game Statistics</h2>
+            
+            <!-- Settings Section -->
+            <div class="stats-section">
+                <h3>Settings</h3>
+                <div class="settings-controls">
+                    <div class="toggle-buttons">
+                        <button id="toggle-names-button" class="toggle-button">Show Note Names</button>
+                        <button id="toggle-all-keys-button" class="toggle-button">Show All Notes</button>
+                    </div>
+                    <button id="clear-storage-button" class="toggle-button">Clear Storage</button>
+                </div>
+            </div>
+            
+            <!-- Level Selection Section -->
+            <div class="stats-section">
+                <h3>Level Selection</h3>
+                <div id="level-selection" class="level-selection">
+                    <!-- Level buttons will be added dynamically -->
+                </div>
+            </div>
+            
             <div class="stats-section">
                 <h3>Learned Notes</h3>
                 <div id="learned-notes-list" class="stats-list"></div>
             </div>
+            
             <div class="stats-section">
                 <h3>Level Progression</h3>
                 <div id="levels-list" class="stats-list"></div>

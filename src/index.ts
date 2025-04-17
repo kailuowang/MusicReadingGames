@@ -15,27 +15,90 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetButton = document.getElementById('reset-button') as HTMLButtonElement;
     const clearStorageButton = document.getElementById('clear-storage-button') as HTMLButtonElement;
     const statsButton = document.getElementById('stats-button') as HTMLButtonElement;
+    const toggleNamesButton = document.getElementById('toggle-names-button') as HTMLButtonElement;
+    const toggleAllKeysButton = document.getElementById('toggle-all-keys-button') as HTMLButtonElement;
     
     // Set up popup elements
     const statsPopup = document.getElementById('stats-popup') as HTMLDivElement;
     const closeButton = document.querySelector('.close-button') as HTMLSpanElement;
     const learnedNotesList = document.getElementById('learned-notes-list') as HTMLDivElement;
     const levelsList = document.getElementById('levels-list') as HTMLDivElement;
+    const levelSelection = document.getElementById('level-selection') as HTMLDivElement;
+    
+    // Function to update UI based on game running state
+    function updateGameRunningUI() {
+        if (game.isGameRunning()) {
+            startButton.style.display = 'none';
+        } else {
+            startButton.style.display = 'block';
+        }
+    }
+    
+    // Initialize UI state
+    updateGameRunningUI();
     
     startButton.addEventListener('click', () => {
         console.log('Start button clicked');
         game.start();
+        updateGameRunningUI();
     });
     
     resetButton.addEventListener('click', () => {
         console.log('Reset button clicked');
         game.reset();
+        updateGameRunningUI();
     });
     
     clearStorageButton.addEventListener('click', () => {
         console.log('Clear Storage button clicked');
         storageManager.clearState();
         alert('Storage cleared! Refresh the page to start with fresh state.');
+        statsPopup.classList.remove('active');
+    });
+    
+    // Toggle buttons for piano keyboard
+    toggleNamesButton.addEventListener('click', () => {
+        const keyboard = game['keyboardRenderer'];
+        if (keyboard) {
+            keyboard.toggleNoteNames();
+            
+            // Update button text
+            const showingNames = keyboard['showNoteNames'];
+            toggleNamesButton.textContent = showingNames ? 'Hide Note Names' : 'Show Note Names';
+            
+            // Re-render keyboard if game is running
+            if (game.isGameRunning()) {
+                const currentLevel = game['currentLevel'];
+                if (currentLevel) {
+                    const availableNotes = currentLevel.getAvailableNotes();
+                    keyboard.renderKeyboard(availableNotes, (note: Note) => {
+                        game['checkAnswer'](note);
+                    });
+                }
+            }
+        }
+    });
+    
+    toggleAllKeysButton.addEventListener('click', () => {
+        const keyboard = game['keyboardRenderer'];
+        if (keyboard) {
+            keyboard.toggleShowAllKeys();
+            
+            // Update button text
+            const showingAll = keyboard['showAllKeys'];
+            toggleAllKeysButton.textContent = showingAll ? 'Hide Unavailable Notes' : 'Show All Notes';
+            
+            // Re-render keyboard if game is running
+            if (game.isGameRunning()) {
+                const currentLevel = game['currentLevel'];
+                if (currentLevel) {
+                    const availableNotes = currentLevel.getAvailableNotes();
+                    keyboard.renderKeyboard(availableNotes, (note: Note) => {
+                        game['checkAnswer'](note);
+                    });
+                }
+            }
+        }
     });
     
     // Stats button and popup functionality
@@ -59,6 +122,41 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStatsPopup() {
         updateLearnedNotes();
         updateLevelsInfo();
+        updateLevelSelection();
+    }
+    
+    function updateLevelSelection() {
+        levelSelection.innerHTML = '';
+        
+        // Get the current game state
+        const gameState = storageManager.loadState();
+        const currentLevelIndex = gameState ? gameState.currentLevelIndex : 0;
+        
+        // Create a button for each level
+        LevelData.levels.forEach((level, index) => {
+            const levelButton = document.createElement('button');
+            levelButton.className = 'level-button';
+            if (index === currentLevelIndex) {
+                levelButton.classList.add('current');
+            }
+            levelButton.textContent = `Level ${index + 1}: ${level.name}`;
+            
+            // Add click event to change to this level
+            levelButton.addEventListener('click', () => {
+                game.setLevel(index);
+                
+                // Close the popup
+                statsPopup.classList.remove('active');
+                
+                // If game isn't running, start it
+                if (!game.isGameRunning()) {
+                    game.start();
+                    updateGameRunningUI();
+                }
+            });
+            
+            levelSelection.appendChild(levelButton);
+        });
     }
     
     function updateLearnedNotes() {
@@ -114,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4>Treble Clef Notes</h4>
                 <div class="level-notes">
                     ${trebleNotes.map(note => 
-                        `<span class="note-tag">${note.name}</span>`
+                        `<span class="note-tag">${note.name}${note.octave}</span>`
                     ).join('')}
                 </div>
             `;
@@ -129,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4>Bass Clef Notes</h4>
                 <div class="level-notes">
                     ${bassNotes.map(note => 
-                        `<span class="note-tag">${note.name}</span>`
+                        `<span class="note-tag">${note.name}${note.octave}</span>`
                     ).join('')}
                 </div>
             `;
@@ -163,9 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // If this is the new note in this level, highlight it
                 const isNewNote = level.newNote && note.name === level.newNote.name && 
                                  note.clef === level.newNote.clef && 
-                                 note.position === level.newNote.position;
+                                 note.position === level.newNote.position &&
+                                 note.octave === level.newNote.octave;
                                  
-                return `<span class="note-tag ${isNewNote ? 'new' : ''}">${note.name} (${note.clef})</span>`;
+                return `<span class="note-tag ${isNewNote ? 'new' : ''}">${note.name}${note.octave} (${note.clef})</span>`;
             }).join('');
             
             levelItem.innerHTML = `

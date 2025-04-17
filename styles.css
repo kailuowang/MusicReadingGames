@@ -377,6 +377,39 @@ button:hover {
     background-color: #e74c3c;
 }
 
+/* Level selection styles */
+.level-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.level-button {
+    padding: 8px 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.level-button:hover {
+    background-color: #2980b9;
+}
+
+.level-button.current {
+    background-color: #e74c3c;
+}
+
+.settings-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
 /* Show the popup when it has the 'active' class */
 .popup.active {
     display: block;

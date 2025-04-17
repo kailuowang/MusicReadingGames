@@ -62,6 +62,37 @@ export class Game {
         }
     }
     
+    /**
+     * Sets the current level to the specified index and loads it
+     * Can be used to jump to any available level
+     */
+    public setLevel(levelIndex: number): void {
+        if (levelIndex < 0 || levelIndex >= LevelData.levels.length) {
+            console.error(`Level ${levelIndex} does not exist.`);
+            return;
+        }
+        
+        this.state.currentLevelIndex = levelIndex;
+        
+        // Clear recent attempts for the new level
+        this.state.recentAttempts = [];
+        
+        // Save the updated state
+        this.storageManager.saveState(this.state);
+        
+        // If game is running, load the level immediately
+        if (this.state.isGameRunning) {
+            this.loadLevel(levelIndex);
+        }
+    }
+    
+    /**
+     * Returns whether the game is currently running
+     */
+    public isGameRunning(): boolean {
+        return this.state.isGameRunning;
+    }
+    
     public reset(): void {
         console.log('Resetting game and clearing storage...');
         
