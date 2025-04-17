@@ -15,10 +15,10 @@ jest.mock('../data/LevelData', () => ({
 }));
 
 // Sample notes for testing
-const noteF: Note = { name: 'F', position: 1, isSpace: true, clef: 'treble' };
-const noteA: Note = { name: 'A', position: 2, isSpace: true, clef: 'treble' };
-const noteC: Note = { name: 'C', position: 3, isSpace: true, clef: 'treble' };
-const noteE: Note = { name: 'E', position: 4, isSpace: true, clef: 'treble' };
+const noteF: Note = { name: 'F', position: 1, isSpace: true, clef: 'treble', octave: 4 };
+const noteA: Note = { name: 'A', position: 2, isSpace: true, clef: 'treble', octave: 4 };
+const noteC: Note = { name: 'C', position: 3, isSpace: true, clef: 'treble', octave: 5 };
+const noteE: Note = { name: 'E', position: 4, isSpace: true, clef: 'treble', octave: 5 };
 
 // Sample level configurations
 const firstLevelConfig: LevelConfig = {
@@ -40,7 +40,7 @@ const progressiveLevelConfig: LevelConfig = {
     newNote: noteA,
     learnedNotes: [noteF],
     requiredSuccessCount: 10,
-    maxTimePerProblem: 5
+    maxTimePerProblem: 4
 };
 
 const advancedLevelConfig: LevelConfig = {
