@@ -3,6 +3,7 @@ import { Note } from '../models/Note';
 export class PianoKeyboardRenderer {
     private container: HTMLElement;
     private showNoteNames: boolean = true;
+    private showAllKeys: boolean = false;
     private currentClef: 'treble' | 'bass' = 'treble';
     
     // Define key colors (white for natural notes, black for accidentals)
@@ -39,19 +40,38 @@ export class PianoKeyboardRenderer {
         keyboardContainer.className = 'piano-keyboard';
         keyboardContainer.dataset.clef = this.currentClef;
         
+        // Create toggle buttons container
+        const toggleContainer = document.createElement('div');
+        toggleContainer.className = 'toggle-buttons';
+        
         // Create toggle button for note names
-        const toggleButton = document.createElement('button');
-        toggleButton.className = 'toggle-note-names';
-        toggleButton.textContent = this.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
-        toggleButton.addEventListener('click', () => {
+        const toggleNamesButton = document.createElement('button');
+        toggleNamesButton.className = 'toggle-button';
+        toggleNamesButton.textContent = this.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
+        toggleNamesButton.addEventListener('click', () => {
             this.showNoteNames = !this.showNoteNames;
-            toggleButton.textContent = this.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
+            toggleNamesButton.textContent = this.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
             // Update keyboard display
             this.renderKeyboard(notes, callback);
         });
         
-        // Add toggle button to container
-        this.container.appendChild(toggleButton);
+        // Create toggle button for showing all keys
+        const toggleAllKeysButton = document.createElement('button');
+        toggleAllKeysButton.className = 'toggle-button';
+        toggleAllKeysButton.textContent = this.showAllKeys ? 'Hide Unavailable Notes' : 'Show All Notes';
+        toggleAllKeysButton.addEventListener('click', () => {
+            this.showAllKeys = !this.showAllKeys;
+            toggleAllKeysButton.textContent = this.showAllKeys ? 'Hide Unavailable Notes' : 'Show All Notes';
+            // Update keyboard display
+            this.renderKeyboard(notes, callback);
+        });
+        
+        // Add toggle buttons to container
+        toggleContainer.appendChild(toggleNamesButton);
+        toggleContainer.appendChild(toggleAllKeysButton);
+        
+        // Add toggle buttons container to main container
+        this.container.appendChild(toggleContainer);
         
         // Determine starting octave based on current clef
         const startOctave = this.currentClef === 'treble' 
@@ -90,19 +110,24 @@ export class PianoKeyboardRenderer {
         
         // Find if this note is in our available notes - match by name AND octave
         const matchingCNote = notes.find(n => {
-            return n.name === 'C' && (n.octave === thirdOctaveNum || n.octave === undefined);
+            return n.name === 'C' && (n.octave === thirdOctaveNum);
         });
         
-        if (matchingCNote) {
-            cKey.classList.add('selectable');
-            
-            // Create a copy of the note with octave information
-            const noteWithOctave: Note = {
-                ...matchingCNote,
-                octave: thirdOctaveNum
-            };
-            
-            cKey.addEventListener('click', () => callback(noteWithOctave));
+        if (matchingCNote || this.showAllKeys) {
+            if (matchingCNote) {
+                cKey.classList.add('selectable');
+                
+                // Create a copy of the note with octave information
+                const noteWithOctave: Note = {
+                    ...matchingCNote,
+                    octave: thirdOctaveNum
+                };
+                
+                cKey.addEventListener('click', () => callback(noteWithOctave));
+            } else {
+                // If showing all keys but this one isn't in the available notes
+                cKey.classList.add('unavailable');
+            }
         } else {
             cKey.classList.add('disabled');
         }
@@ -141,19 +166,24 @@ export class PianoKeyboardRenderer {
             
             // Find if this note is in our available notes - match by name AND octave 
             const matchingNote = availableNotes.find(n => {
-                return n.name === noteName && (n.octave === octave || n.octave === undefined);
+                return n.name === noteName && (n.octave === octave);
             });
             
-            if (matchingNote) {
-                key.classList.add('selectable');
-                
-                // Create a copy of the note with octave information
-                const noteWithOctave: Note = {
-                    ...matchingNote,
-                    octave: octave
-                };
-                
-                key.addEventListener('click', () => callback(noteWithOctave));
+            if (matchingNote || this.showAllKeys) {
+                if (matchingNote) {
+                    key.classList.add('selectable');
+                    
+                    // Create a copy of the note with octave information
+                    const noteWithOctave: Note = {
+                        ...matchingNote,
+                        octave: octave
+                    };
+                    
+                    key.addEventListener('click', () => callback(noteWithOctave));
+                } else {
+                    // If showing all keys but this one isn't in the available notes
+                    key.classList.add('unavailable');
+                }
             } else {
                 key.classList.add('disabled');
             }
@@ -190,19 +220,24 @@ export class PianoKeyboardRenderer {
             // Find if this note (with sharp/flat) is in our available notes
             const matchingNote = availableNotes.find(n => {
                 return n.name === baseName && n.accidental === 'sharp' && 
-                       (n.octave === octave || n.octave === undefined);
+                       (n.octave === octave);
             });
             
-            if (matchingNote) {
-                key.classList.add('selectable');
-                
-                // Create a copy of the note with octave information
-                const noteWithOctave: Note = {
-                    ...matchingNote,
-                    octave: octave
-                };
-                
-                key.addEventListener('click', () => callback(noteWithOctave));
+            if (matchingNote || this.showAllKeys) {
+                if (matchingNote) {
+                    key.classList.add('selectable');
+                    
+                    // Create a copy of the note with octave information
+                    const noteWithOctave: Note = {
+                        ...matchingNote,
+                        octave: octave
+                    };
+                    
+                    key.addEventListener('click', () => callback(noteWithOctave));
+                } else {
+                    // If showing all keys but this one isn't in the available notes
+                    key.classList.add('unavailable');
+                }
             } else {
                 key.classList.add('disabled');
             }
@@ -219,5 +254,12 @@ export class PianoKeyboardRenderer {
      */
     public toggleNoteNames(): void {
         this.showNoteNames = !this.showNoteNames;
+    }
+    
+    /**
+     * Toggle whether all keys are displayed or only available ones
+     */
+    public toggleShowAllKeys(): void {
+        this.showAllKeys = !this.showAllKeys;
     }
 } 

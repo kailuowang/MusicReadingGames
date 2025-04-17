@@ -187,7 +187,7 @@ export class Game {
         // Move to next note
         setTimeout(() => {
             this.moveToNextNote();
-        }, 1500);
+        }, 100);
     }
     
     private moveToNextNote(): void {
