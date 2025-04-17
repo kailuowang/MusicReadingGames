@@ -4,10 +4,10 @@ export class SheetMusicRenderer {
     private container: HTMLElement;
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
-    private width: number = 500;
-    private height: number = 200;
-    private lineSpacing: number = 10;
-    private staffY: number = 100; // Y-position of the middle staff line
+    private width: number = 700;
+    private height: number = 300;
+    private lineSpacing: number = 15;
+    private staffY: number = 150;
     private trebleClefImg: HTMLImageElement;
     private bassClefImg: HTMLImageElement;
     private imagesLoaded: boolean = false;
@@ -35,10 +35,20 @@ export class SheetMusicRenderer {
         this.trebleClefImg = new Image();
         this.bassClefImg = new Image();
         
+        // Add error handlers to debug loading issues
+        this.trebleClefImg.onerror = (e) => {
+            console.error('Failed to load treble clef image:', e);
+        };
+        
+        this.bassClefImg.onerror = (e) => {
+            console.error('Failed to load bass clef image:', e);
+        };
+        
         // Load both images and draw staff when ready
         let imagesLoaded = 0;
         const onImageLoad = () => {
             imagesLoaded++;
+            console.log('Image loaded successfully:', imagesLoaded);
             if (imagesLoaded === 2) {
                 this.imagesLoaded = true;
                 // Initial draw of empty staff
@@ -50,12 +60,59 @@ export class SheetMusicRenderer {
         this.trebleClefImg.onload = onImageLoad;
         this.bassClefImg.onload = onImageLoad;
         
-        // Set image sources
-        this.trebleClefImg.src = 'imgs/treble_clef.png';
-        this.bassClefImg.src = 'imgs/bass_clef.png';
+        // Try several possible paths for the images
+        // Try importing from various possible locations
+        const possiblePaths = [
+            '/imgs/treble_clef.png',
+            './imgs/treble_clef.png',
+            '../imgs/treble_clef.png',
+            '../../imgs/treble_clef.png',
+            'imgs/treble_clef.png'
+        ];
+        
+        // Attempt to load the treble clef from the first path that works
+        this.loadTrebleClefFromPaths(possiblePaths, 0);
+        
+        // Similarly for bass clef
+        const bassClefPaths = possiblePaths.map(p => p.replace('treble', 'bass'));
+        this.loadBassClefFromPaths(bassClefPaths, 0);
         
         // Draw staff immediately (clefs will be added when images load)
         this.drawStaff();
+    }
+    
+    private loadTrebleClefFromPaths(paths: string[], index: number): void {
+        if (index >= paths.length) {
+            console.error('Failed to load treble clef from any path');
+            return;
+        }
+        
+        console.log('Trying to load treble clef from:', paths[index]);
+        this.trebleClefImg.src = paths[index];
+        
+        // Set a timeout to try the next path if this one fails
+        setTimeout(() => {
+            if (!this.imagesLoaded) {
+                this.loadTrebleClefFromPaths(paths, index + 1);
+            }
+        }, 500);
+    }
+    
+    private loadBassClefFromPaths(paths: string[], index: number): void {
+        if (index >= paths.length) {
+            console.error('Failed to load bass clef from any path');
+            return;
+        }
+        
+        console.log('Trying to load bass clef from:', paths[index]);
+        this.bassClefImg.src = paths[index];
+        
+        // Set a timeout to try the next path if this one fails
+        setTimeout(() => {
+            if (!this.imagesLoaded) {
+                this.loadBassClefFromPaths(paths, index + 1);
+            }
+        }, 500);
     }
     
     public renderNote(note: Note): void {
@@ -77,14 +134,14 @@ export class SheetMusicRenderer {
     
     private drawStaff(): void {
         this.ctx.strokeStyle = 'black';
-        this.ctx.lineWidth = 1;
+        this.ctx.lineWidth = 2;
         
         // Draw 5 horizontal lines for the staff
         for (let i = 0; i < 5; i++) {
             const y = this.staffY + (i - 2) * this.lineSpacing * 2;
             this.ctx.beginPath();
-            this.ctx.moveTo(50, y);
-            this.ctx.lineTo(this.width - 50, y);
+            this.ctx.moveTo(70, y);
+            this.ctx.lineTo(this.width - 70, y);
             this.ctx.stroke();
         }
     }
@@ -96,11 +153,11 @@ export class SheetMusicRenderer {
         }
         
         if (clef === 'treble') {
-            // Position for treble clef
-            this.ctx.drawImage(this.trebleClefImg, 60, this.staffY - 40, 30, 80);
+            // Position for treble clef - enlarged
+            this.ctx.drawImage(this.trebleClefImg, 80, this.staffY - 65, 50, 130);
         } else {
-            // Position for bass clef
-            this.ctx.drawImage(this.bassClefImg, 60, this.staffY - 30, 30, 60);
+            // Position for bass clef - enlarged
+            this.ctx.drawImage(this.bassClefImg, 80, this.staffY - 45, 50, 90);
         }
     }
     
@@ -130,23 +187,24 @@ export class SheetMusicRenderer {
         // X position for the note (centered on the staff)
         const xPos = this.width / 2;
         
-        // Draw note head (ellipse)
+        // Draw note head (circle) - made perfectly round and 15% bigger
         this.ctx.fillStyle = 'black';
         this.ctx.beginPath();
-        this.ctx.ellipse(xPos, yPos, 7, 5, Math.PI / 4, 0, 2 * Math.PI);
+        this.ctx.ellipse(xPos, yPos, 11.5, 11.5, 0, 0, 2 * Math.PI);
         this.ctx.fill();
         
-        // Draw stem
+        // Draw stem - thicker and longer
+        this.ctx.lineWidth = 2;
         this.ctx.beginPath();
-        this.ctx.moveTo(xPos + 6, yPos);
-        this.ctx.lineTo(xPos + 6, yPos - 30);
+        this.ctx.moveTo(xPos + 11, yPos);
+        this.ctx.lineTo(xPos + 11, yPos - 50);
         this.ctx.stroke();
         
         // Draw accidental if needed
         if (note.accidental) {
             // Draw accidental sign (simplified)
             this.ctx.fillStyle = 'black';
-            this.ctx.font = '20px Arial';
+            this.ctx.font = '28px Arial';
             let accidentalSign = '';
             switch (note.accidental) {
                 case 'sharp':
@@ -159,7 +217,7 @@ export class SheetMusicRenderer {
                     accidentalSign = '♮';
                     break;
             }
-            this.ctx.fillText(accidentalSign, xPos - 20, yPos + 5);
+            this.ctx.fillText(accidentalSign, xPos - 35, yPos + 7);
         }
     }
 } 

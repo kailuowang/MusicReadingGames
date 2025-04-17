@@ -16,6 +16,7 @@ export class Game {
     private speedElement: HTMLElement;
     private streakRequiredElement: HTMLElement;
     private speedRequiredElement: HTMLElement;
+    private noteDisplayTime: number = 0; // Store when the current note was displayed
     
     constructor() {
         this.state = {
@@ -70,6 +71,9 @@ export class Game {
             recentAttempts: []
         };
         
+        // Save the empty state to storage
+        this.storageManager.saveState(this.state);
+        
         this.updateStats();
         this.clearFeedback();
         this.clearNoteOptions();
@@ -97,6 +101,9 @@ export class Game {
         const currentNote = this.currentLevel.getCurrentNote();
         this.sheetRenderer.renderNote(currentNote);
         this.renderNoteOptions();
+        
+        // Store the time when the note was displayed
+        this.noteDisplayTime = Date.now();
     }
     
     private renderNoteOptions(): void {
@@ -133,9 +140,9 @@ export class Game {
             };
         }
         
-        // Create timeSpent - simulating response time between 1-3 seconds for now
-        // In a real implementation, you'd track actual time from when the note was displayed
-        const timeSpent = 1 + Math.random() * 2;
+        // Calculate actual time spent answering this question
+        const answerTime = Date.now();
+        const timeSpent = (answerTime - this.noteDisplayTime) / 1000; // Convert to seconds
         
         // Add to recent attempts array for level completion tracking
         if (!this.state.recentAttempts) {
@@ -145,7 +152,7 @@ export class Game {
         this.state.recentAttempts.push({
             isCorrect,
             timeSpent,
-            timestamp: Date.now()
+            timestamp: answerTime
         });
         
         if (isCorrect) {
