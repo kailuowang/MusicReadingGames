@@ -63,11 +63,11 @@ export class SheetMusicRenderer {
         // Try several possible paths for the images
         // Try importing from various possible locations
         const possiblePaths = [
-            '/imgs/treble_clef.png',
             './imgs/treble_clef.png',
             '../imgs/treble_clef.png',
             '../../imgs/treble_clef.png',
-            'imgs/treble_clef.png'
+            'imgs/treble_clef.png',
+            '/imgs/treble_clef.png'
         ];
         
         // Attempt to load the treble clef from the first path that works
