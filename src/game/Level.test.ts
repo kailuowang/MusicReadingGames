@@ -1,124 +1,223 @@
 import { Level } from './Level';
 import { Note } from '../models/Note';
 import { LevelConfig } from '../models/LevelConfig';
+import { LevelData } from '../data/LevelData';
+
+// Mock LevelData
+jest.mock('../data/LevelData', () => ({
+    LevelData: {
+        NEW_NOTE_FREQUENCY: 0.2,
+        LEVEL_CRITERIA: {
+            requiredSuccessCount: 10,
+            maxTimePerProblem: 5
+        }
+    }
+}));
 
 // Sample notes for testing
 const noteF: Note = { name: 'F', position: 1, isSpace: true, clef: 'treble' };
 const noteA: Note = { name: 'A', position: 2, isSpace: true, clef: 'treble' };
 const noteC: Note = { name: 'C', position: 3, isSpace: true, clef: 'treble' };
+const noteE: Note = { name: 'E', position: 4, isSpace: true, clef: 'treble' };
 
-// Sample level configuration
-const testLevelConfig: LevelConfig = {
+// Sample level configurations
+const firstLevelConfig: LevelConfig = {
     id: 1,
-    name: 'Test Level',
-    description: 'A test level',
+    name: 'First Note',
+    description: 'A test level with just the first note',
+    clef: 'treble',
+    notes: [noteF],
+    requiredSuccessCount: 10,
+    maxTimePerProblem: 5
+};
+
+const progressiveLevelConfig: LevelConfig = {
+    id: 2,
+    name: 'Learning A',
+    description: 'A test level introducing note A',
+    clef: 'treble',
+    notes: [noteF, noteA],
+    newNote: noteA,
+    learnedNotes: [noteF],
+    requiredSuccessCount: 10,
+    maxTimePerProblem: 5
+};
+
+const advancedLevelConfig: LevelConfig = {
+    id: 3,
+    name: 'Learning C',
+    description: 'A test level introducing note C',
     clef: 'treble',
     notes: [noteF, noteA, noteC],
+    newNote: noteC,
+    learnedNotes: [noteF, noteA],
     requiredSuccessCount: 10,
     maxTimePerProblem: 5
 };
 
 describe('Level', () => {
-    let level: Level;
+    describe('Basic functionality', () => {
+        let level: Level;
 
-    beforeEach(() => {
-        // Create a new level instance before each test
-        level = new Level(testLevelConfig);
-    });
-
-    test('should initialize with the correct configuration', () => {
-        expect(level.getCurrentNote()).toBe(noteF); // First note in the initial pool
-        expect(level.getAvailableNotes()).toEqual([noteF, noteA, noteC]);
-    });
-
-    test('should return the current note', () => {
-        expect(level.getCurrentNote()).toBe(noteF);
-    });
-
-    test('should advance to the next note correctly', () => {
-        level.nextNote();
-        expect(level.getCurrentNote()).toBe(noteA);
-        level.nextNote();
-        expect(level.getCurrentNote()).toBe(noteC);
-    });
-    
-    test('should cycle back to the first note after the last note', () => {
-        level.nextNote(); // Move to A
-        level.nextNote(); // Move to C
-        level.nextNote(); // Cycle back to F
-        expect(level.getCurrentNote()).toBe(noteF);
-    });
-
-    test('should correctly report when the level is complete (last note reached)', () => {
-        // Creating mock data for the required recent attempts
-        const notEnoughAttempts = Array(9).fill({
-            isCorrect: true,
-            timeSpent: 2.0
+        beforeEach(() => {
+            // Create a new level instance before each test
+            level = new Level(firstLevelConfig);
         });
-        expect(level.isComplete(notEnoughAttempts)).toBe(false);
-        
-        // Enough attempts but not all correct
-        const someIncorrectAttempts = Array(10).fill({
-            isCorrect: true,
-            timeSpent: 2.0
+
+        test('should initialize with the correct configuration', () => {
+            expect(level.getAvailableNotes()).toEqual([noteF]);
         });
-        someIncorrectAttempts[5] = { isCorrect: false, timeSpent: 2.0 };
-        expect(level.isComplete(someIncorrectAttempts)).toBe(false);
-        
-        // All correct and fast enough
-        const perfectAttempts = Array(10).fill({
-            isCorrect: true,
-            timeSpent: 2.0
+
+        test('should return the current note', () => {
+            const currentNote = level.getCurrentNote();
+            expect(currentNote.name).toBe('F');
         });
-        expect(level.isComplete(perfectAttempts)).toBe(true);
+
+        test('should advance to the next note correctly', () => {
+            const initialNote = level.getCurrentNote();
+            level.nextNote();
+            const nextNote = level.getCurrentNote();
+            
+            // Since there's only one note, it should cycle back to the same note
+            expect(nextNote.name).toBe(initialNote.name);
+        });
+
+        test('should correctly report when the level is complete', () => {
+            // Creating mock data for the required recent attempts
+            const notEnoughAttempts = Array(9).fill({
+                isCorrect: true,
+                timeSpent: 2.0
+            });
+            expect(level.isComplete(notEnoughAttempts)).toBe(false);
+            
+            // Enough attempts but not all correct
+            const someIncorrectAttempts = Array(10).fill({
+                isCorrect: true,
+                timeSpent: 2.0
+            });
+            someIncorrectAttempts[5] = { isCorrect: false, timeSpent: 2.0 };
+            expect(level.isComplete(someIncorrectAttempts)).toBe(false);
+            
+            // All correct but too slow
+            const tooSlowAttempts = Array(10).fill({
+                isCorrect: true,
+                timeSpent: 6.0 // Over the 5s limit
+            });
+            expect(level.isComplete(tooSlowAttempts)).toBe(false);
+            
+            // All correct and fast enough
+            const perfectAttempts = Array(10).fill({
+                isCorrect: true,
+                timeSpent: 2.0
+            });
+            expect(level.isComplete(perfectAttempts)).toBe(true);
+        });
     });
 
-    test('should update the note pool based on history and shuffle it', () => {
-        const noteHistory = {
-            'F': { correct: 1, incorrect: 3 }, // F is problematic
-            'A': { correct: 5, incorrect: 1 },
-            'C': { correct: 4, incorrect: 0 }
-        };
-        
-        const initialPool = [noteF, noteA, noteC];
-        
-        // Run update multiple times to test shuffling randomness (somewhat)
-        let differentOrderObserved = false;
-        let previousPoolString = JSON.stringify(level['notePool']);
+    describe('Progressive Learning', () => {
+        let level: Level;
 
-        for (let i = 0; i < 5; i++) {
+        test('should correctly setup a note pool with the new note frequency at approximately 20%', () => {
+            level = new Level(progressiveLevelConfig);
+            const pool = (level as any).notePool; // Access private property for testing
+            
+            // Count the occurrences of each note
+            const fCount = pool.filter((note: Note) => note.name === 'F').length;
+            const aCount = pool.filter((note: Note) => note.name === 'A').length;
+            
+            // Verify that A (the new note) appears about 20% of the time
+            expect(aCount).toBeGreaterThan(0);
+            const aPercentage = aCount / pool.length;
+            expect(aPercentage).toBeCloseTo(0.2, 1); // Within 10% tolerance
+            
+            // Verify that F (the learned note) appears about 80% of the time
+            expect(fCount).toBeGreaterThan(0);
+            const fPercentage = fCount / pool.length;
+            expect(fPercentage).toBeCloseTo(0.8, 1); // Within 10% tolerance
+        });
+
+        test('should correctly distribute multiple learned notes when introducing a new note', () => {
+            level = new Level(advancedLevelConfig);
+            const pool = (level as any).notePool; // Access private property for testing
+            
+            // Count the occurrences of each note
+            const fCount = pool.filter((note: Note) => note.name === 'F').length;
+            const aCount = pool.filter((note: Note) => note.name === 'A').length;
+            const cCount = pool.filter((note: Note) => note.name === 'C').length;
+            
+            // Verify that C (the new note) appears about 20% of the time
+            expect(cCount).toBeGreaterThan(0);
+            const cPercentage = cCount / pool.length;
+            expect(cPercentage).toBeCloseTo(0.2, 1); // Within 10% tolerance
+            
+            // Verify that F and A (the learned notes) each appear about 40% of the time (80% / 2)
+            expect(fCount).toBeGreaterThan(0);
+            expect(aCount).toBeGreaterThan(0);
+            
+            // Check total learned notes percentage
+            const learnedNotesPercentage = (fCount + aCount) / pool.length;
+            expect(learnedNotesPercentage).toBeCloseTo(0.8, 1); // Within 10% tolerance
+            
+            // Check that learned notes are distributed roughly evenly
+            const fToACountRatio = fCount / aCount;
+            expect(fToACountRatio).toBeCloseTo(1, 1); // Within 10% tolerance of 1:1 ratio
+        });
+
+        test('should update note pool based on note history and maintain the new note frequency', () => {
+            level = new Level(progressiveLevelConfig);
+            
+            // Create a note history where F has more mistakes
+            const noteHistory = {
+                'F': { correct: 2, incorrect: 4 }, // High error rate
+                'A': { correct: 5, incorrect: 1 }  // Low error rate
+            };
+            
+            // Update the note pool
             level.updateNotePool(noteHistory);
-            const currentPool = level['notePool'];
+            const updatedPool = (level as any).notePool;
             
-            // Check if F has repetitions (should have 3 incorrect / 1 correct -> ceil(3) = 3 repetitions)
-            const fCount = currentPool.filter(note => note.name === 'F').length;
-            expect(fCount).toBeGreaterThanOrEqual(1 + 3); // Original + repetitions
+            // Count occurrences after update
+            const fCount = updatedPool.filter((note: Note) => note.name === 'F').length;
+            const aCount = updatedPool.filter((note: Note) => note.name === 'A').length;
             
-            // Check if A has repetitions (1 incorrect / 5 correct -> ceil(0.2) = 1 repetition)
-            const aCount = currentPool.filter(note => note.name === 'A').length;
-            expect(aCount).toBeGreaterThanOrEqual(1 + 1); // Original + repetition
+            // Verify that note A (the new note) still appears, but F has more repetitions due to errors
+            expect(aCount).toBeGreaterThan(0);
+            expect(fCount).toBeGreaterThan(0);
             
-            // Check if C has repetitions (0 incorrect -> 0 repetitions)
-            const cCount = currentPool.filter(note => note.name === 'C').length;
-            expect(cCount).toBe(1); // Just the original
-
-            // Check total size
-            expect(currentPool.length).toBeGreaterThanOrEqual(initialPool.length + 3 + 1);
-            
-            // Check if order is different from previous (indicates shuffling)
-            const currentPoolString = JSON.stringify(currentPool);
-            if (i > 0 && currentPoolString !== previousPoolString) {
-                differentOrderObserved = true;
-            }
-            previousPoolString = currentPoolString;
-        }
+            // F should have more occurrences than normal due to mistakes
+            // Calculate error rate for F: 4/(2+4) = 0.67, repetition factor = ceil(0.67*10) = 7
+            // This is added to the base distribution
+            expect(fCount).toBeGreaterThan(aCount);
+        });
         
-        expect(differentOrderObserved).toBe(true); // It's highly likely the order changed at least once
-    });
-    
-    test('should return the original available notes regardless of the current pool', () => {
-         const noteHistory = { 'F': { correct: 1, incorrect: 3 } };
-         level.updateNotePool(noteHistory);
-         expect(level.getAvailableNotes()).toEqual([noteF, noteA, noteC]); // Should still be the original notes
+        test('should handle a level with no new note (first level or master level)', () => {
+            const masterLevelConfig: LevelConfig = {
+                id: 10,
+                name: 'Master Level',
+                description: 'All notes test',
+                clef: 'treble',
+                notes: [noteF, noteA, noteC, noteE],
+                requiredSuccessCount: 15,
+                maxTimePerProblem: 4
+            };
+            
+            level = new Level(masterLevelConfig);
+            const pool = (level as any).notePool;
+            
+            // All notes should be represented without special frequency
+            const uniqueNotes = new Set(pool.map((note: Note) => note.name));
+            expect(uniqueNotes.size).toBe(4);
+            
+            // Count occurrences
+            const fCount = pool.filter((note: Note) => note.name === 'F').length;
+            const aCount = pool.filter((note: Note) => note.name === 'A').length;
+            const cCount = pool.filter((note: Note) => note.name === 'C').length;
+            const eCount = pool.filter((note: Note) => note.name === 'E').length;
+            
+            // All notes should have roughly the same occurrence
+            expect(fCount).toBeCloseTo(aCount, -1); // Within an order of magnitude
+            expect(aCount).toBeCloseTo(cCount, -1);
+            expect(cCount).toBeCloseTo(eCount, -1);
+        });
     });
 }); 

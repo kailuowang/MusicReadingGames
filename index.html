@@ -25,8 +25,26 @@
             <button id="start-button">Start Game</button>
             <button id="reset-button">Reset</button>
             <button id="clear-storage-button">Clear Storage</button>
+            <button id="stats-button">View Stats</button>
         </div>
     </div>
+
+    <!-- Stats Popup -->
+    <div id="stats-popup" class="popup">
+        <div class="popup-content">
+            <span class="close-button">&times;</span>
+            <h2>Game Statistics</h2>
+            <div class="stats-section">
+                <h3>Learned Notes</h3>
+                <div id="learned-notes-list" class="stats-list"></div>
+            </div>
+            <div class="stats-section">
+                <h3>Level Progression</h3>
+                <div id="levels-list" class="stats-list"></div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Bundle will be injected by HtmlWebpackPlugin -->
 </body>
 </html> 

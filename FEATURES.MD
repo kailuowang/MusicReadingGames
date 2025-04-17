@@ -3,10 +3,12 @@ All game meta data should be stored separately from code so that they can be eas
 The game logic should have unit test coverage
 
 
-* [ ] Note Read Game - a game where player can select the correct note displayed in the sheet to score. 
-   * [ ]  Multile levels. starting with the 4 space notes F, A, C, E on treble clef
-   * [ ]  If users are able to consistently get it correct and finish reading all the notes within a certain time, they get a level up with one more note added to the game. 
-   * [ ]  If user has been mistaken about a specific note, the note should be asked more frequently until the user can consistent get it right
-   * [ ]  The user's progress should be stored in the cookie so that she can resume later
-   * [ ]  Once all the treble clef are consistent correct, add base clef notes
+* [x] Note Read Game - a game where player can select the correct note displayed in the sheet to score. 
+   * [x]  Multile levels. starting with the 4 space notes F, A, C, E on treble clef
+   * [x] It can be assumed that the user has learned all the notes up to this level, so we have a set of learned notes, starting from level 2, each new level should be just 1 new note, but it not try to add any base cleff notes before all the treble cleffs are learned. In this new level, the app should randomly pick a note from the learned notes set and randomly ask this new note at a roughly 20% frequency. 
+   * [x] The user level up when they achieve a streak with faster than a certain speed. 
+
+   * [x]  If user has been mistaken about a specific note, the note should be asked more frequently until the user can consistent get it right
+   * [x]  The user's progress should be stored in the cookie so that she can resume later
+   
 

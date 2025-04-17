@@ -33,71 +33,94 @@ const bassClefNotes: Note[] = [
     { name: 'A', position: 5, isSpace: false, clef: 'bass' }
 ];
 
+// Get treble clef space notes (F, A, C, E)
+const trebleClefSpaceNotes = trebleClefNotes.filter(note => note.isSpace && note.clef === 'treble');
+
+// Define the learning order for subsequent levels after the first level
+// Starting with Treble Clef lines (E, G, B, D, F), then bass clef notes
+const noteProgressionOrder: Note[] = [
+    // First the treble clef lines (EGBDF)
+    ...trebleClefNotes.filter(note => !note.isSpace),
+    
+    // Then bass clef spaces (ACEG)
+    ...bassClefNotes.filter(note => note.isSpace),
+    
+    // Then bass clef lines (GBDFA)
+    ...bassClefNotes.filter(note => !note.isSpace)
+];
+
+// Standard level progression criteria for all levels
+const standardLevelCriteria = {
+    requiredSuccessCount: 10,    // 10 correct in a row to level up
+    maxTimePerProblem: 5        // 5 seconds per problem maximum
+};
+
 export class LevelData {
-    // Define the levels
-    public static levels: LevelConfig[] = [
-        {
+    // Standard ratio for how often the new note should appear
+    public static readonly NEW_NOTE_FREQUENCY = 0.2; // 20%
+    
+    // Standard level completion criteria
+    public static readonly LEVEL_CRITERIA = standardLevelCriteria;
+    
+    // Generate levels progressively
+    public static generateLevels(): LevelConfig[] {
+        const levels: LevelConfig[] = [];
+        
+        // First level starts with all four space notes in the treble clef (F, A, C, E)
+        levels.push({
             id: 1,
             name: 'Treble Clef Spaces',
             description: 'Learn the notes in the spaces of the treble clef (F, A, C, E)',
             clef: 'treble',
-            notes: trebleClefNotes.filter(note => note.isSpace && note.clef === 'treble'),
-            requiredSuccessCount: 8,    // Start with 8 correct in a row
-            maxTimePerProblem: 6        // Allow 6 seconds per problem initially
-        },
-        {
-            id: 2,
-            name: 'Treble Clef Lines',
-            description: 'Learn the notes on the lines of the treble clef (E, G, B, D, F)',
-            clef: 'treble',
-            notes: trebleClefNotes.filter(note => !note.isSpace && note.clef === 'treble'),
-            requiredSuccessCount: 10,   // Increase to 10 correct in a row
-            maxTimePerProblem: 5        // Require faster responses
-        },
-        {
-            id: 3,
-            name: 'All Treble Clef Notes',
-            description: 'Practice all notes on the treble clef',
-            clef: 'treble',
-            notes: trebleClefNotes.filter(note => note.clef === 'treble'),
-            requiredSuccessCount: 12,   // Increase to 12 correct in a row
-            maxTimePerProblem: 4        // Require even faster responses
-        },
-        {
-            id: 4,
-            name: 'Bass Clef Spaces',
-            description: 'Learn the notes in the spaces of the bass clef (A, C, E, G)',
-            clef: 'bass',
-            notes: bassClefNotes.filter(note => note.isSpace && note.clef === 'bass'),
-            requiredSuccessCount: 8,    // Back to 8 correct in a row for new clef
-            maxTimePerProblem: 6        // Allow 6 seconds initially for new clef
-        },
-        {
-            id: 5,
-            name: 'Bass Clef Lines',
-            description: 'Learn the notes on the lines of the bass clef (G, B, D, F, A)',
-            clef: 'bass',
-            notes: bassClefNotes.filter(note => !note.isSpace && note.clef === 'bass'),
-            requiredSuccessCount: 10,   // Increase to 10 correct in a row
-            maxTimePerProblem: 5        // Require faster responses
-        },
-        {
-            id: 6,
-            name: 'All Bass Clef Notes',
-            description: 'Practice all notes on the bass clef',
-            clef: 'bass',
-            notes: bassClefNotes.filter(note => note.clef === 'bass'),
-            requiredSuccessCount: 12,   // Increase to 12 correct in a row
-            maxTimePerProblem: 4        // Require even faster responses
-        },
-        {
-            id: 7,
+            notes: trebleClefSpaceNotes,
+            ...standardLevelCriteria
+        });
+        
+        // Starting with the second level, begin introducing one new note at a time
+        let learnedNotes = [...trebleClefSpaceNotes]; // Start with the space notes we've already learned
+        
+        // Generate subsequent levels, each adding one new note
+        for (let i = 0; i < noteProgressionOrder.length; i++) {
+            const newNote = noteProgressionOrder[i];
+            
+            // Determine if we're switching clefs
+            const prevClef = i > 0 ? noteProgressionOrder[i-1].clef : 'treble';
+            const clefChange = prevClef !== newNote.clef;
+            
+            levels.push({
+                id: i + 2, // +2 because we already have level 1
+                name: clefChange 
+                    ? `Introduction to ${newNote.clef.charAt(0).toUpperCase() + newNote.clef.slice(1)} Clef: ${newNote.name}`
+                    : `Learning ${newNote.name}`,
+                description: `Learn the note ${newNote.name} on the ${newNote.clef} clef`,
+                clef: newNote.clef,
+                notes: [...learnedNotes, newNote],
+                newNote: newNote,  // Keep track of which note is new in this level
+                learnedNotes: learnedNotes,  // Keep track of all previously learned notes
+                ...standardLevelCriteria
+            });
+            
+            // Add the new note to the learned notes for next level
+            learnedNotes = [...learnedNotes, newNote];
+        }
+        
+        // Add a mastery level with all notes
+        levels.push({
+            id: noteProgressionOrder.length + 2, // +2 because we already have level 1
             name: 'Master Level',
             description: 'Practice all notes on both the treble and bass clefs',
             clef: 'treble', // Default clef, but will show both
             notes: [...trebleClefNotes, ...bassClefNotes],
-            requiredSuccessCount: 15,   // Require 15 correct in a row for master level
-            maxTimePerProblem: 3        // Require very fast responses (3 seconds per problem)
-        }
-    ];
+            ...standardLevelCriteria,
+            requiredSuccessCount: 15,  // Make master level slightly more challenging
+            maxTimePerProblem: 4
+        });
+        
+        return levels;
+    }
+    
+    // Get levels using the generator
+    public static get levels(): LevelConfig[] {
+        return this.generateLevels();
+    }
 } 

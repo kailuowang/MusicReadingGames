@@ -83,14 +83,29 @@ export class Game {
     }
     
     private loadLevel(levelIndex: number): void {
-        const levelData = LevelData.levels[levelIndex];
-        if (!levelData) {
+        const levels = LevelData.levels;
+        if (levelIndex < 0 || levelIndex >= levels.length) {
             console.error(`Level ${levelIndex} does not exist.`);
             return;
         }
         
-        console.log(`Loading level ${levelIndex}: ${levelData.name}`);
+        const levelData = levels[levelIndex];
+        console.log(`Loading level ${levelIndex + 1}: ${levelData.name}`);
         this.currentLevel = new Level(levelData);
+        
+        // If the level has a new note, update the note history with an initial entry
+        if (levelData.newNote && !this.state.noteHistory[levelData.newNote.name]) {
+            this.state.noteHistory[levelData.newNote.name] = {
+                correct: 0,
+                incorrect: 0
+            };
+        }
+        
+        // Update the note pool based on history
+        if (this.currentLevel) {
+            this.currentLevel.updateNotePool(this.state.noteHistory);
+        }
+        
         this.displayCurrentNote();
         this.updateLevelRequirements();
     }
@@ -186,11 +201,17 @@ export class Game {
     
     private levelUp(): void {
         this.state.currentLevelIndex++;
+        
+        // Clear recent attempts for the new level
+        this.state.recentAttempts = [];
+        
         this.storageManager.saveState(this.state);
         
         // Check if there are more levels
         if (this.state.currentLevelIndex < LevelData.levels.length) {
-            this.showFeedback(true, `Level Up! Moving to level ${this.state.currentLevelIndex + 1}`);
+            const nextLevel = LevelData.levels[this.state.currentLevelIndex];
+            this.showFeedback(true, `Level Up! Moving to level ${this.state.currentLevelIndex + 1}: ${nextLevel.name}`);
+            
             setTimeout(() => {
                 this.loadLevel(this.state.currentLevelIndex);
             }, 2000);
@@ -232,9 +253,9 @@ export class Game {
             return 0;
         }
         
-        // Get the current level's config
-        const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
-        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || 10;
+        // Get the current level's requirement
+        const currentLevel = LevelData.levels[this.state.currentLevelIndex];
+        const requiredSuccessCount = currentLevel?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
         
         // Take only up to N most recent attempts where N = requiredSuccessCount
         const recentAttempts = this.state.recentAttempts.slice(-requiredSuccessCount);
@@ -266,8 +287,8 @@ export class Game {
         
         // Get the current level's requirements
         const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
-        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || 10;
-        const maxTimePerProblem = currentLevelConfig?.maxTimePerProblem || 5;
+        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
+        const maxTimePerProblem = currentLevelConfig?.maxTimePerProblem || LevelData.LEVEL_CRITERIA.maxTimePerProblem;
         
         // Update the displayed requirements
         if (this.streakRequiredElement) {
@@ -287,8 +308,8 @@ export class Game {
         
         // Get the current level's requirements
         const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
-        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || 10;
-        const maxTimePerProblem = currentLevelConfig?.maxTimePerProblem || 5;
+        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
+        const maxTimePerProblem = currentLevelConfig?.maxTimePerProblem || LevelData.LEVEL_CRITERIA.maxTimePerProblem;
         
         // Update streak styling
         if (currentStreak >= requiredSuccessCount) {
