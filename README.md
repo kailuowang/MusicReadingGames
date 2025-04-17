@@ -41,6 +41,30 @@ To build the production version:
 npm run build
 ```
 
+### Deployment
+
+The game can be easily deployed to GitHub Pages:
+
+1. If you haven't already, install the gh-pages package:
+```
+npm install gh-pages --save-dev
+```
+
+2. Make sure your package.json has the following scripts:
+```json
+"scripts": {
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d dist"
+}
+```
+
+3. Deploy to GitHub Pages:
+```
+npm run deploy
+```
+
+4. Your game will be published to https://[your-username].github.io/[repository-name]/
+
 ## Game Structure
 
 The game has the following levels:
@@ -54,6 +78,10 @@ The game has the following levels:
 7. Master Level (All notes from both clefs)
 
 Each level adapts to the player's performance, showing more frequently the notes that the player struggles with.
+
+## Live Demo
+
+Try the game at: https://kailuowang.github.io/MusicReadingGames/
 
 ## License
 
