@@ -4,11 +4,13 @@ import { GameState } from '../models/GameState';
 import { LevelData } from '../data/LevelData';
 import { SheetMusicRenderer } from '../renderers/SheetMusicRenderer';
 import { StorageManager } from '../utils/StorageManager';
+import { PianoKeyboardRenderer } from '../renderers/PianoKeyboardRenderer';
 
 export class Game {
     private state: GameState;
     private currentLevel: Level | null = null;
     private sheetRenderer: SheetMusicRenderer;
+    private keyboardRenderer: PianoKeyboardRenderer;
     private storageManager: StorageManager;
     private noteOptionsContainer: HTMLElement;
     private feedbackElement: HTMLElement;
@@ -27,6 +29,7 @@ export class Game {
         };
         
         this.sheetRenderer = new SheetMusicRenderer('sheet-music');
+        this.keyboardRenderer = new PianoKeyboardRenderer('note-options');
         this.storageManager = new StorageManager('music-reading-game');
         this.noteOptionsContainer = document.getElementById('note-options') as HTMLElement;
         this.feedbackElement = document.getElementById('feedback') as HTMLElement;
@@ -38,11 +41,8 @@ export class Game {
         // Try to load saved state
         const savedState = this.storageManager.loadState();
         if (savedState) {
+            console.log('Restored previous game state:', savedState);
             this.state = savedState;
-            // Initialize recentAttempts if it doesn't exist in saved state
-            if (!this.state.recentAttempts) {
-                this.state.recentAttempts = [];
-            }
         }
         
         this.updateStats();
@@ -128,16 +128,9 @@ export class Game {
         
         const availableNotes = this.currentLevel.getAvailableNotes();
         
-        availableNotes.forEach((note: Note) => {
-            const button = document.createElement('button');
-            button.className = 'note-button';
-            button.textContent = note.name;
-            
-            button.addEventListener('click', () => {
-                this.checkAnswer(note);
-            });
-            
-            this.noteOptionsContainer.appendChild(button);
+        // Use the piano keyboard renderer to display the notes
+        this.keyboardRenderer.renderKeyboard(availableNotes, (selectedNote: Note) => {
+            this.checkAnswer(selectedNote);
         });
     }
     
@@ -145,7 +138,12 @@ export class Game {
         if (!this.currentLevel) return;
         
         const currentNote = this.currentLevel.getCurrentNote();
-        const isCorrect = currentNote.name === selectedNote.name;
+        
+        // Check both note name and octave match
+        const nameMatches = currentNote.name === selectedNote.name;
+        const octaveMatches = currentNote.octave === selectedNote.octave;
+        
+        const isCorrect = nameMatches && octaveMatches;
         
         // Update note history for adaptive difficulty
         if (!this.state.noteHistory[currentNote.name]) {
@@ -172,10 +170,15 @@ export class Game {
         
         if (isCorrect) {
             this.state.noteHistory[currentNote.name].correct += 1;
-            this.showFeedback(true, `Correct! That's ${currentNote.name}`);
+            this.showFeedback(true, `Correct! That's ${currentNote.name}${currentNote.octave}`);
         } else {
             this.state.noteHistory[currentNote.name].incorrect += 1;
-            this.showFeedback(false, `Incorrect. That was ${currentNote.name}, not ${selectedNote.name}`);
+            
+            if (!nameMatches) {
+                this.showFeedback(false, `Incorrect. That was ${currentNote.name}${currentNote.octave}, not ${selectedNote.name}${selectedNote.octave}`);
+            } else if (!octaveMatches) {
+                this.showFeedback(false, `Incorrect. Right note name (${currentNote.name}), but wrong octave. It was ${currentNote.name}${currentNote.octave}, you selected ${selectedNote.name}${selectedNote.octave}`);
+            }
         }
         
         this.updateStats();

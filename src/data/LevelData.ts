@@ -4,33 +4,33 @@ import { Note } from '../models/Note';
 // Define the notes for the treble clef
 const trebleClefNotes: Note[] = [
     // F, A, C, E (the spaces in treble clef, "FACE")
-    { name: 'F', position: 1, isSpace: true, clef: 'treble' },
-    { name: 'A', position: 2, isSpace: true, clef: 'treble' },
-    { name: 'C', position: 3, isSpace: true, clef: 'treble' },
-    { name: 'E', position: 4, isSpace: true, clef: 'treble' },
+    { name: 'F', position: 1, isSpace: true, clef: 'treble', octave: 4 },
+    { name: 'A', position: 2, isSpace: true, clef: 'treble', octave: 4 },
+    { name: 'C', position: 3, isSpace: true, clef: 'treble', octave: 5 },
+    { name: 'E', position: 4, isSpace: true, clef: 'treble', octave: 5 },
     
     // E, G, B, D, F (the lines in treble clef, "Every Good Boy Does Fine")
-    { name: 'E', position: 1, isSpace: false, clef: 'treble' },
-    { name: 'G', position: 2, isSpace: false, clef: 'treble' },
-    { name: 'B', position: 3, isSpace: false, clef: 'treble' },
-    { name: 'D', position: 4, isSpace: false, clef: 'treble' },
-    { name: 'F', position: 5, isSpace: false, clef: 'treble' }
+    { name: 'E', position: 1, isSpace: false, clef: 'treble', octave: 4 },
+    { name: 'G', position: 2, isSpace: false, clef: 'treble', octave: 4 },
+    { name: 'B', position: 3, isSpace: false, clef: 'treble', octave: 4 },
+    { name: 'D', position: 4, isSpace: false, clef: 'treble', octave: 5 },
+    { name: 'F', position: 5, isSpace: false, clef: 'treble', octave: 5 }
 ];
 
 // Define the notes for the bass clef
 const bassClefNotes: Note[] = [
     // A, C, E, G (the spaces in bass clef, "All Cows Eat Grass")
-    { name: 'A', position: 1, isSpace: true, clef: 'bass' },
-    { name: 'C', position: 2, isSpace: true, clef: 'bass' },
-    { name: 'E', position: 3, isSpace: true, clef: 'bass' },
-    { name: 'G', position: 4, isSpace: true, clef: 'bass' },
+    { name: 'A', position: 1, isSpace: true, clef: 'bass', octave: 2 },
+    { name: 'C', position: 2, isSpace: true, clef: 'bass', octave: 3 },
+    { name: 'E', position: 3, isSpace: true, clef: 'bass', octave: 3 },
+    { name: 'G', position: 4, isSpace: true, clef: 'bass', octave: 3 },
     
     // G, B, D, F, A (the lines in bass clef, "Good Boys Do Fine Always")
-    { name: 'G', position: 1, isSpace: false, clef: 'bass' },
-    { name: 'B', position: 2, isSpace: false, clef: 'bass' },
-    { name: 'D', position: 3, isSpace: false, clef: 'bass' },
-    { name: 'F', position: 4, isSpace: false, clef: 'bass' },
-    { name: 'A', position: 5, isSpace: false, clef: 'bass' }
+    { name: 'G', position: 1, isSpace: false, clef: 'bass', octave: 2 },
+    { name: 'B', position: 2, isSpace: false, clef: 'bass', octave: 2 },
+    { name: 'D', position: 3, isSpace: false, clef: 'bass', octave: 3 },
+    { name: 'F', position: 4, isSpace: false, clef: 'bass', octave: 3 },
+    { name: 'A', position: 5, isSpace: false, clef: 'bass', octave: 3 }
 ];
 
 // Get treble clef space notes (F, A, C, E)

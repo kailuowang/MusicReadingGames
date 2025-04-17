@@ -4,4 +4,5 @@ export interface Note {
     isSpace: boolean; // Whether the note is on a space or a line
     clef: 'treble' | 'bass';
     accidental?: 'sharp' | 'flat' | 'natural';
+    octave: number; // Octave is now required
 } 
