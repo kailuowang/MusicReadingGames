@@ -8,6 +8,9 @@ export class SheetMusicRenderer {
     private height: number = 200;
     private lineSpacing: number = 10;
     private staffY: number = 100; // Y-position of the middle staff line
+    private trebleClefImg: HTMLImageElement;
+    private bassClefImg: HTMLImageElement;
+    private imagesLoaded: boolean = false;
     
     constructor(containerId: string) {
         const container = document.getElementById(containerId);
@@ -28,7 +31,30 @@ export class SheetMusicRenderer {
         this.ctx = ctx;
         this.container.appendChild(this.canvas);
         
-        // Initial draw of empty staff
+        // Preload clef images
+        this.trebleClefImg = new Image();
+        this.bassClefImg = new Image();
+        
+        // Load both images and draw staff when ready
+        let imagesLoaded = 0;
+        const onImageLoad = () => {
+            imagesLoaded++;
+            if (imagesLoaded === 2) {
+                this.imagesLoaded = true;
+                // Initial draw of empty staff
+                this.drawStaff();
+                console.log('Clef images loaded and staff drawn');
+            }
+        };
+        
+        this.trebleClefImg.onload = onImageLoad;
+        this.bassClefImg.onload = onImageLoad;
+        
+        // Set image sources
+        this.trebleClefImg.src = 'imgs/treble_clef.png';
+        this.bassClefImg.src = 'imgs/bass_clef.png';
+        
+        // Draw staff immediately (clefs will be added when images load)
         this.drawStaff();
     }
     
@@ -41,6 +67,8 @@ export class SheetMusicRenderer {
         
         // Draw the note
         this.drawNote(note);
+        
+        console.log(`Rendering ${note.name} note on ${note.clef} clef`);
     }
     
     public clear(): void {
@@ -62,24 +90,17 @@ export class SheetMusicRenderer {
     }
     
     private drawClef(clef: 'treble' | 'bass'): void {
-        // Load an image for the clef
-        const img = new Image();
-        img.onload = () => {
-            if (clef === 'treble') {
-                // Position for treble clef
-                this.ctx.drawImage(img, 60, this.staffY - 40, 30, 80);
-            } else {
-                // Position for bass clef
-                this.ctx.drawImage(img, 60, this.staffY - 30, 30, 60);
-            }
-        };
+        if (!this.imagesLoaded) {
+            console.log('Clef images not yet loaded');
+            return;
+        }
         
-        // Set the source of the image based on the clef
         if (clef === 'treble') {
-            img.src = 'imgs/treble_clef.png';
+            // Position for treble clef
+            this.ctx.drawImage(this.trebleClefImg, 60, this.staffY - 40, 30, 80);
         } else {
-            // Use a placeholder or actual bass clef image
-            img.src = 'imgs/treble_clef.png'; // Replace with bass_clef.png when available
+            // Position for bass clef
+            this.ctx.drawImage(this.bassClefImg, 60, this.staffY - 30, 30, 60);
         }
     }
     

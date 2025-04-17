@@ -51,6 +51,8 @@ export class Game {
         if (!this.state.isGameRunning) {
             this.state.isGameRunning = true;
             this.loadLevel(this.state.currentLevelIndex);
+            console.log('Game started!');
+            this.updateLevelRequirements();
         }
     }
     
@@ -76,8 +78,10 @@ export class Game {
             return;
         }
         
+        console.log(`Loading level ${levelIndex}: ${levelData.name}`);
         this.currentLevel = new Level(levelData);
         this.displayCurrentNote();
+        this.updateLevelRequirements();
     }
     
     private displayCurrentNote(): void {
@@ -122,6 +126,21 @@ export class Game {
             };
         }
         
+        // Create timeSpent - simulating response time between 1-3 seconds for now
+        // In a real implementation, you'd track actual time from when the note was displayed
+        const timeSpent = 1 + Math.random() * 2;
+        
+        // Add to recent attempts array for level completion tracking
+        if (!this.state.recentAttempts) {
+            this.state.recentAttempts = [];
+        }
+        
+        this.state.recentAttempts.push({
+            isCorrect,
+            timeSpent,
+            timestamp: Date.now()
+        });
+        
         if (isCorrect) {
             this.state.noteHistory[currentNote.name].correct += 1;
             this.showFeedback(true, `Correct! That's ${currentNote.name}`);
@@ -142,7 +161,7 @@ export class Game {
     private moveToNextNote(): void {
         if (!this.currentLevel) return;
         
-        // Check if current level is complete with the new criteria
+        // Check if current level is complete
         if (this.state.recentAttempts && this.currentLevel.isComplete(this.state.recentAttempts)) {
             this.levelUp();
         } else {
