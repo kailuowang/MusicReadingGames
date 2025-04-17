@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Reading Game</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Music Reading Game</h1>
+        <div id="game-container">
+            <div id="sheet-music"></div>
+            <div id="note-options"></div>
+            <div id="feedback"></div>
+            <div id="game-stats">
+                <div id="streak-display">Streak: <span id="streak-value">0</span></div>
+                <div id="speed-display">Speed: <span id="speed-value">0.0</span>s/note</div>
+                <div id="level-requirements">
+                    Level Goal: <span id="streak-required">0</span> correct in a row 
+                    under <span id="speed-required">0</span>s/note
+                </div>
+            </div>
+        </div>
+        <div id="controls">
+            <button id="start-button">Start Game</button>
+            <button id="reset-button">Reset</button>
+        </div>
+    </div>
+    <!-- Bundle will be injected by HtmlWebpackPlugin -->
+</body>
+</html> 
