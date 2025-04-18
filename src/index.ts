@@ -18,6 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleNamesButton = document.getElementById('toggle-names-button') as HTMLButtonElement;
     const toggleAllKeysButton = document.getElementById('toggle-all-keys-button') as HTMLButtonElement;
     
+    // Set up profile-related elements
+    const profilesList = document.getElementById('profiles-list') as HTMLDivElement;
+    const newProfileNameInput = document.getElementById('new-profile-name') as HTMLInputElement;
+    const addProfileButton = document.getElementById('add-profile-button') as HTMLButtonElement;
+    const profileEditModal = document.getElementById('profile-edit-modal') as HTMLDivElement;
+    const editProfileNameInput = document.getElementById('edit-profile-name') as HTMLInputElement;
+    const saveProfileButton = document.getElementById('save-profile-button') as HTMLButtonElement;
+    const deleteProfileButton = document.getElementById('delete-profile-button') as HTMLButtonElement;
+    const modalCloseButton = document.querySelector('.modal-close-button') as HTMLSpanElement;
+    
+    // Current profile being edited
+    let currentEditingProfileId: string | null = null;
+    
     // Set up popup elements
     const statsPopup = document.getElementById('stats-popup') as HTMLDivElement;
     const closeButton = document.querySelector('.close-button') as HTMLSpanElement;
@@ -51,9 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     clearStorageButton.addEventListener('click', () => {
         console.log('Clear Storage button clicked');
-        storageManager.clearState();
-        alert('Storage cleared! Refresh the page to start with fresh state.');
-        statsPopup.classList.remove('active');
+        if (confirm('This will reset all profiles and game progress. Are you sure?')) {
+            game.resetAllProfiles();
+            alert('All profiles and game progress have been reset!');
+            statsPopup.classList.remove('active');
+        }
     });
     
     // Toggle buttons for piano keyboard
@@ -112,17 +127,96 @@ document.addEventListener('DOMContentLoaded', () => {
         statsPopup.classList.remove('active');
     });
     
-    // Close the popup when clicking outside the content
-    window.addEventListener('click', (event) => {
-        if (event.target === statsPopup) {
-            statsPopup.classList.remove('active');
+    // Profile management
+    addProfileButton.addEventListener('click', () => {
+        const profileName = newProfileNameInput.value.trim();
+        if (profileName) {
+            game.createProfile(profileName);
+            newProfileNameInput.value = '';
+            updateProfilesList();
         }
     });
     
-    function updateStatsPopup() {
-        updateLearnedNotes();
-        updateLevelsInfo();
-        updateLevelSelection();
+    saveProfileButton.addEventListener('click', () => {
+        if (currentEditingProfileId) {
+            const newName = editProfileNameInput.value.trim();
+            if (newName) {
+                game.updateProfileName(currentEditingProfileId, newName);
+                profileEditModal.classList.remove('active');
+                updateProfilesList();
+            }
+        }
+    });
+    
+    deleteProfileButton.addEventListener('click', () => {
+        if (currentEditingProfileId && confirm('Are you sure you want to delete this profile? All progress will be lost.')) {
+            game.removeProfile(currentEditingProfileId);
+            profileEditModal.classList.remove('active');
+            updateProfilesList();
+        }
+    });
+    
+    modalCloseButton.addEventListener('click', () => {
+        profileEditModal.classList.remove('active');
+    });
+    
+    // Close the modal when clicking outside the content
+    window.addEventListener('click', (event) => {
+        if (event.target === profileEditModal) {
+            profileEditModal.classList.remove('active');
+        }
+    });
+    
+    // Function to open the profile edit modal
+    function openProfileEditModal(profileId: string, profileName: string) {
+        currentEditingProfileId = profileId;
+        editProfileNameInput.value = profileName;
+        profileEditModal.classList.add('active');
+    }
+    
+    // Function to render the profiles list
+    function updateProfilesList() {
+        profilesList.innerHTML = '';
+        
+        const profiles = game.getAllProfiles();
+        
+        if (profiles.length === 0) {
+            profilesList.innerHTML = '<p class="no-profiles">No profiles available</p>';
+            return;
+        }
+        
+        // Sort profiles by last used (most recent first)
+        profiles.sort((a, b) => b.lastUsed - a.lastUsed);
+        
+        profiles.forEach(profile => {
+            const profileItem = document.createElement('div');
+            profileItem.className = `profile-item ${profile.isActive ? 'active' : ''}`;
+            
+            const profileNameSpan = document.createElement('span');
+            profileNameSpan.className = 'profile-name';
+            profileNameSpan.textContent = profile.name;
+            
+            const editButton = document.createElement('button');
+            editButton.className = 'profile-edit-button';
+            editButton.textContent = 'Edit';
+            editButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the profile selection when clicking edit
+                openProfileEditModal(profile.id, profile.name);
+            });
+            
+            profileItem.appendChild(profileNameSpan);
+            profileItem.appendChild(editButton);
+            
+            // Select this profile when clicking on it
+            profileItem.addEventListener('click', () => {
+                if (!profile.isActive) {
+                    game.setActiveProfile(profile.id);
+                    updateProfilesList();
+                }
+            });
+            
+            profilesList.appendChild(profileItem);
+        });
     }
     
     function updateLevelSelection() {
@@ -277,5 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             levelsList.appendChild(levelItem);
         });
+    }
+    
+    function updateStatsPopup() {
+        updateProfilesList();
+        updateLearnedNotes();
+        updateLevelsInfo();
+        updateLevelSelection();
     }
 }); 

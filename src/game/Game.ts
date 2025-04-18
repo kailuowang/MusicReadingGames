@@ -6,6 +6,7 @@ import { SheetMusicRenderer } from '../renderers/SheetMusicRenderer';
 import { StorageManager } from '../utils/StorageManager';
 import { PianoKeyboardRenderer } from '../renderers/PianoKeyboardRenderer';
 import { NoteRepository } from '../models/NoteRepository';
+import { ProfileManager } from '../utils/ProfileManager';
 
 // Cartoon characters and encouraging messages
 interface CartoonCharacter {
@@ -68,6 +69,7 @@ export class Game {
     private sheetRenderer: SheetMusicRenderer;
     private keyboardRenderer: PianoKeyboardRenderer;
     private storageManager: StorageManager;
+    private profileManager: ProfileManager;
     private noteRepository: NoteRepository;
     private noteOptionsContainer: HTMLElement;
     private feedbackElement: HTMLElement;
@@ -75,11 +77,14 @@ export class Game {
     private speedElement: HTMLElement;
     private streakRequiredElement: HTMLElement;
     private speedRequiredElement: HTMLElement;
+    private profileNameElement: HTMLElement | null = null;
+    private levelNameElement: HTMLElement | null = null;
     private noteDisplayTime: number = 0; // Store when the current note was displayed
     private lastStreakAnimation: number = 0; // Track when we last showed a streak animation
     private characterElement: HTMLElement | null = null;
     
     constructor() {
+        // Default state (will be overridden by profile if available)
         this.state = {
             currentLevelIndex: 0,
             isGameRunning: false,
@@ -93,6 +98,7 @@ export class Game {
         this.sheetRenderer = new SheetMusicRenderer('sheet-music');
         this.keyboardRenderer = new PianoKeyboardRenderer('note-options');
         this.storageManager = new StorageManager('music-reading-game');
+        this.profileManager = new ProfileManager('music-reading-game');
         this.noteOptionsContainer = document.getElementById('note-options') as HTMLElement;
         this.feedbackElement = document.getElementById('feedback') as HTMLElement;
         this.streakElement = document.getElementById('streak-value') as HTMLElement;
@@ -100,14 +106,131 @@ export class Game {
         this.streakRequiredElement = document.getElementById('streak-required') as HTMLElement;
         this.speedRequiredElement = document.getElementById('speed-required') as HTMLElement;
         
-        // Try to load saved state
-        const savedState = this.storageManager.loadState();
-        if (savedState) {
-            console.log('Restored previous game state:', savedState);
-            this.state = savedState;
+        // Get profile display elements
+        this.profileNameElement = document.getElementById('profile-name') as HTMLElement;
+        this.levelNameElement = document.getElementById('level-name') as HTMLElement;
+        
+        // Try to load state from active profile
+        const activeProfile = this.profileManager.getActiveProfile();
+        if (activeProfile) {
+            console.log('Loaded profile:', activeProfile.name);
+            this.state = activeProfile.gameState;
+        } else {
+            // Create default profile if none exists
+            this.createDefaultProfile();
         }
         
         this.updateStats();
+        this.updateProfileDisplay();
+    }
+    
+    /**
+     * Creates a default profile if none exists
+     */
+    private createDefaultProfile(): void {
+        const defaultProfile = this.profileManager.createProfile('Player 1');
+        this.state = defaultProfile.gameState;
+        console.log('Created default profile:', defaultProfile.name);
+    }
+    
+    /**
+     * Gets all profiles
+     */
+    public getAllProfiles(): { id: string; name: string; isActive: boolean; lastUsed: number }[] {
+        const profiles = this.profileManager.getAllProfiles();
+        const activeProfile = this.profileManager.getActiveProfile();
+        
+        return profiles.map(profile => ({
+            id: profile.id,
+            name: profile.name,
+            isActive: activeProfile ? profile.id === activeProfile.id : false,
+            lastUsed: profile.lastUsed
+        }));
+    }
+    
+    /**
+     * Gets the active profile
+     */
+    public getActiveProfile(): { id: string; name: string } | null {
+        const profile = this.profileManager.getActiveProfile();
+        return profile ? { id: profile.id, name: profile.name } : null;
+    }
+    
+    /**
+     * Creates a new profile
+     */
+    public createProfile(name: string): void {
+        this.profileManager.createProfile(name);
+        this.updateProfileDisplay();
+    }
+    
+    /**
+     * Removes a profile
+     */
+    public removeProfile(id: string): void {
+        this.profileManager.removeProfile(id);
+        
+        // If the active profile was removed, load the new active profile's state
+        const activeProfile = this.profileManager.getActiveProfile();
+        if (activeProfile) {
+            this.state = activeProfile.gameState;
+            this.updateStats();
+        }
+        
+        this.updateProfileDisplay();
+    }
+    
+    /**
+     * Updates a profile name
+     */
+    public updateProfileName(id: string, name: string): void {
+        this.profileManager.updateProfileName(id, name);
+        this.updateProfileDisplay();
+    }
+    
+    /**
+     * Sets the active profile
+     */
+    public setActiveProfile(id: string): void {
+        if (this.profileManager.setActiveProfile(id)) {
+            const profile = this.profileManager.getActiveProfile();
+            if (profile) {
+                // Load the profile's game state
+                this.state = profile.gameState;
+                
+                // If game is running, load the level
+                if (this.state.isGameRunning) {
+                    this.loadLevel(this.state.currentLevelIndex);
+                } else {
+                    // Just clear the display
+                    this.clearFeedback();
+                    this.clearNoteOptions();
+                    this.sheetRenderer.clear();
+                }
+                
+                this.updateStats();
+                this.updateProfileDisplay();
+            }
+        }
+    }
+    
+    /**
+     * Updates the profile display in the UI
+     */
+    private updateProfileDisplay(): void {
+        // Update profile name display
+        if (this.profileNameElement) {
+            const profile = this.profileManager.getActiveProfile();
+            this.profileNameElement.textContent = profile ? profile.name : 'No Profile';
+        }
+        
+        // Update level name display
+        if (this.levelNameElement) {
+            const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
+            this.levelNameElement.textContent = currentLevelConfig ? 
+                `Level ${this.state.currentLevelIndex + 1}: ${currentLevelConfig.name}` : 
+                'No Level';
+        }
     }
     
     public start(): void {
@@ -116,6 +239,7 @@ export class Game {
             this.loadLevel(this.state.currentLevelIndex);
             console.log('Game started!');
             this.updateLevelRequirements();
+            this.saveState();
         }
     }
     
@@ -135,7 +259,8 @@ export class Game {
         this.state.recentAttempts = [];
         
         // Save the updated state
-        this.storageManager.saveState(this.state);
+        this.saveState();
+        this.updateProfileDisplay();
         
         // If game is running, load the level immediately
         if (this.state.isGameRunning) {
@@ -150,11 +275,19 @@ export class Game {
         return this.state.isGameRunning;
     }
     
+    /**
+     * Save the current game state to the active profile
+     */
+    private saveState(): void {
+        // Save to active profile
+        this.profileManager.updateActiveProfileGameState(this.state);
+        
+        // Also save to legacy storage for backward compatibility
+        this.storageManager.saveState(this.state);
+    }
+    
     public reset(): void {
         console.log('Resetting game and clearing storage...');
-        
-        // Clear storage first
-        this.storageManager.clearState();
         
         // Reset state
         this.state = {
@@ -164,15 +297,25 @@ export class Game {
             recentAttempts: []
         };
         
-        // Save the empty state to storage
-        this.storageManager.saveState(this.state);
+        // Save the empty state to profile
+        this.saveState();
         
         this.updateStats();
+        this.updateProfileDisplay();
         this.clearFeedback();
         this.clearNoteOptions();
         this.sheetRenderer.clear();
         
         console.log('Game reset complete.');
+    }
+    
+    /**
+     * Resets all profiles and returns to default state
+     */
+    public resetAllProfiles(): void {
+        this.profileManager.clearAllProfiles();
+        this.createDefaultProfile();
+        this.reset();
     }
     
     private loadLevel(levelIndex: number): void {
@@ -201,6 +344,9 @@ export class Game {
         
         this.displayCurrentNote();
         this.updateLevelRequirements();
+        
+        // Update profile display with level info
+        this.updateProfileDisplay();
     }
     
     private displayCurrentNote(): void {
@@ -276,7 +422,7 @@ export class Game {
         }
         
         this.updateStats();
-        this.storageManager.saveState(this.state);
+        this.saveState();
         
         // Move to next note
         setTimeout(() => {
@@ -302,7 +448,8 @@ export class Game {
         // Clear recent attempts for the new level
         this.state.recentAttempts = [];
         
-        this.storageManager.saveState(this.state);
+        this.saveState();
+        this.updateProfileDisplay(); // Update to show new level name
         
         // Check if there are more levels
         if (this.state.currentLevelIndex < LevelData.levels.length) {
