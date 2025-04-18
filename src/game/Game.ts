@@ -483,7 +483,7 @@ export class Game {
         // Remove after a few seconds
         setTimeout(() => {
             this.removeCharacterElement();
-        }, 3000);
+        }, 9000);
     }
     
     /**
