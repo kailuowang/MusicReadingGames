@@ -6,6 +6,7 @@ import { LevelData } from '../data/LevelData';
 import { Note } from '../models/Note';
 import { GameState } from '../models/GameState';
 import { LevelConfig } from '../models/LevelConfig';
+import { AudioPlayer } from '../utils/AudioPlayer';
 
 // --- Mocks ---
 
@@ -13,6 +14,7 @@ import { LevelConfig } from '../models/LevelConfig';
 jest.mock('./Level');
 jest.mock('../renderers/SheetMusicRenderer');
 jest.mock('../utils/StorageManager');
+jest.mock('../utils/AudioPlayer');
 jest.mock('../data/LevelData', () => {
     return {
         LevelData: {
@@ -30,6 +32,24 @@ jest.mock('../data/LevelData', () => {
 const MockLevel = Level as jest.MockedClass<typeof Level>;
 const MockSheetMusicRenderer = SheetMusicRenderer as jest.MockedClass<typeof SheetMusicRenderer>;
 const MockStorageManager = StorageManager as jest.MockedClass<typeof StorageManager>;
+
+// Mock AudioPlayer singleton
+jest.mock('../utils/AudioPlayer', () => {
+    const mockPlayNote = jest.fn();
+    const mockPlayErrorSound = jest.fn();
+    const mockInitialize = jest.fn();
+    const mockInstance = {
+        playNote: mockPlayNote,
+        playErrorSound: mockPlayErrorSound,
+        initialize: mockInitialize
+    };
+    
+    return {
+        AudioPlayer: {
+            getInstance: jest.fn(() => mockInstance)
+        }
+    };
+});
 
 // Sample data
 const noteF: Note = { name: 'F', position: 1, isSpace: true, clef: 'treble', octave: 4 };
@@ -410,5 +430,49 @@ describe('Game', () => {
         // Verify updated requirements with non-null assertion
         expect(mockStreakRequiredElement.textContent!).toBe('10'); // From testLevelConfig3
         expect(mockSpeedRequiredElement.textContent!).toBe('5');   // From testLevelConfig3
+    });
+
+    test('should play correct note sound for correct answer', () => {
+        // Setup: Start game, level instance exists
+        MockLevel.prototype.getCurrentNote.mockReturnValue(noteF);
+        MockLevel.prototype.getAvailableNotes.mockReturnValue([noteF]);
+        game.start();
+        mockLevelInstance = getMockLevelInstance();
+        mockLevelInstance.isComplete.mockReturnValue(false);
+
+        // Clear previous mocks
+        jest.clearAllMocks();
+        
+        // Get AudioPlayer mock instance
+        const audioPlayer = AudioPlayer.getInstance() as jest.Mocked<AudioPlayer>;
+        
+        // Directly call checkAnswer for a correct answer
+        (game as any).checkAnswer(noteF);
+
+        // Check that the correct sound was played
+        expect(audioPlayer.playNote).toHaveBeenCalledWith('F', 4);
+        expect(audioPlayer.playErrorSound).not.toHaveBeenCalled();
+    });
+
+    test('should play error sound for incorrect answer', () => {
+        // Setup: Start game, level instance exists
+        MockLevel.prototype.getCurrentNote.mockReturnValue(noteF);
+        MockLevel.prototype.getAvailableNotes.mockReturnValue([noteF, noteA]);
+        game.start();
+        mockLevelInstance = getMockLevelInstance();
+        mockLevelInstance.isComplete.mockReturnValue(false);
+        
+        // Clear previous mocks
+        jest.clearAllMocks();
+        
+        // Get AudioPlayer mock instance
+        const audioPlayer = AudioPlayer.getInstance() as jest.Mocked<AudioPlayer>;
+        
+        // Directly call checkAnswer for an incorrect answer
+        (game as any).checkAnswer(noteA);
+
+        // Check that the error sound was played
+        expect(audioPlayer.playErrorSound).toHaveBeenCalled();
+        expect(audioPlayer.playNote).not.toHaveBeenCalled();
     });
 }); 

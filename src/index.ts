@@ -4,11 +4,13 @@ import { StorageManager } from './utils/StorageManager';
 import { LevelData } from './data/LevelData';
 import { LevelConfig } from './models/LevelConfig';
 import { Note } from './models/Note';
+import { AudioPlayer } from './utils/AudioPlayer';
 
 // Initialize the game when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game();
     const storageManager = new StorageManager('music-reading-game');
+    const audioPlayer = AudioPlayer.getInstance();
     
     // Set up button listeners
     const startButton = document.getElementById('start-button') as HTMLButtonElement;
@@ -53,13 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     startButton.addEventListener('click', () => {
-        console.log('Start button clicked');
         game.start();
         updateGameRunningUI();
     });
     
     resetButton.addEventListener('click', () => {
-        console.log('Reset button clicked');
         if (confirm('This will reset your current profile progress. Are you sure?')) {
             game.reset();
             updateGameRunningUI();
@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     clearStorageButton.addEventListener('click', () => {
-        console.log('Clear Storage button clicked');
         if (confirm('This will reset all profiles and game progress. Are you sure?')) {
             game.resetAllProfiles();
             alert('All profiles and game progress have been reset!');
@@ -133,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Stats button and popup functionality
     statsButton.addEventListener('click', () => {
-        console.log('Stats button clicked');
         updateStatsPopup();
         statsPopup.classList.add('active');
     });

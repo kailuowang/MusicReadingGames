@@ -192,12 +192,12 @@ h1 {
 }
 
 .piano-key.disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: default;
 }
 
 .piano-key.unavailable {
-    opacity: 0.8;
+    opacity: 0.3;
     cursor: pointer;
 }
 

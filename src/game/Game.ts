@@ -7,6 +7,7 @@ import { StorageManager } from '../utils/StorageManager';
 import { PianoKeyboardRenderer } from '../renderers/PianoKeyboardRenderer';
 import { NoteRepository } from '../models/NoteRepository';
 import { ProfileManager } from '../utils/ProfileManager';
+import { AudioPlayer } from '../utils/AudioPlayer';
 
 // Cartoon characters and encouraging messages
 interface CartoonCharacter {
@@ -71,6 +72,7 @@ export class Game {
     private storageManager: StorageManager;
     private profileManager: ProfileManager;
     private noteRepository: NoteRepository;
+    private audioPlayer: AudioPlayer;
     private noteOptionsContainer: HTMLElement;
     private feedbackElement: HTMLElement;
     private streakElement: HTMLElement;
@@ -94,6 +96,9 @@ export class Game {
         
         // Initialize the NoteRepository first (singleton)
         this.noteRepository = NoteRepository.getInstance();
+        
+        // Initialize AudioPlayer
+        this.audioPlayer = AudioPlayer.getInstance();
         
         this.sheetRenderer = new SheetMusicRenderer('sheet-music');
         this.keyboardRenderer = new PianoKeyboardRenderer('note-options');
@@ -131,6 +136,14 @@ export class Game {
         
         this.updateStats();
         this.updateProfileDisplay();
+        
+        // Initialize audio on page click
+        document.addEventListener('click', () => {
+            // Initialize audio on any user interaction with the page
+            if (this.audioPlayer) {
+                this.audioPlayer.initialize();
+            }
+        }, { once: true }); // Only need to do this once
     }
     
     /**
@@ -254,6 +267,9 @@ export class Game {
     
     public start(): void {
         if (!this.state.isGameRunning) {
+            // Initialize audio on user interaction
+            this.audioPlayer.initialize();
+            
             this.state.isGameRunning = true;
             this.saveState();
             
@@ -406,6 +422,15 @@ export class Game {
         const octaveMatches = currentNote.octave === selectedNote.octave;
         
         const isCorrect = nameMatches && octaveMatches;
+        
+        // Play appropriate sound based on the answer
+        if (isCorrect) {
+            // Play the correct note sound
+            this.audioPlayer.playNote(currentNote.name, currentNote.octave);
+        } else {
+            // Play error/thud sound
+            this.audioPlayer.playErrorSound();
+        }
         
         // Update note history for adaptive difficulty
         if (!this.state.noteHistory[currentNote.name]) {

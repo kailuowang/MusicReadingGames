@@ -11,5 +11,6 @@ The game logic should have unit test coverage
 
    * [x]  If user has been mistaken about a specific note, the note should be asked more frequently until the user can consistent get it right
    * [x]  The user's progress should be stored in the cookie so that she can resume later
+   * [x]  Audio feedback: play piano midi sound when the correct key is pressed, and play a thud sound when an incorrect key is pressed
    
 

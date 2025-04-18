@@ -1,104 +1,35 @@
 # Music Reading Game
 
-A simple HTML + TypeScript application for learning how to read sheet music.
+An HTML and TypeScript application for learning to read music notes.
 
 ## Features
 
-- Note identification game with multiple levels
-- Progressive difficulty starting with treble clef spaces (F, A, C, E)
-- Adaptive difficulty that increases frequency of problematic notes
-- Progress tracking with local storage
-- Support for both treble and bass clefs
+* Note reading game with progressive difficulty levels
+* Piano keyboard interface for note selection
+* Visual feedback for correct/incorrect answers
+* Sound feedback - synthesized piano sounds for correct answers, thud sound for incorrect ones
+* Tracking of progress and performance
+* Level progression based on streaks and speed
+* Multiple user profiles
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js (v14+)
-- npm or yarn
-
-### Installation
-
 1. Clone the repository
-2. Install dependencies:
-```
-npm install
-```
+2. Install dependencies: `npm install`
+3. Start the development server: `npm start`
 
-### Development
+## Game Mechanics
 
-Run the development server:
-```
-npm start
-```
+The game presents music notes on a staff and asks the player to identify them by clicking the correct piano key. The difficulty increases progressively with new notes being introduced as the player demonstrates mastery of the current level.
 
-The game will be available at http://localhost:9000
+## Audio Implementation
 
-### Testing
+The game uses the Web Audio API to synthesize:
+- Piano sounds for correct answers, using the appropriate frequency for each note
+- A low "thud" sound for incorrect answers
 
-The project uses Jest for testing. To run all tests:
-
-```
-npm test
-```
-
-To run a specific test file:
-
-```
-npm test -- path/to/test-file.test.ts
-```
-
-The test suite includes unit tests for game components, note handling, storage, and rendering.
-
-### Build
-
-To build the production version:
-```
-npm run build
-```
-
-### Deployment
-
-The game can be easily deployed to GitHub Pages:
-
-1. If you haven't already, install the gh-pages package:
-```
-npm install gh-pages --save-dev
-```
-
-2. Make sure your package.json has the following scripts:
-```json
-"scripts": {
-  "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist"
-}
-```
-
-3. Deploy to GitHub Pages:
-```
-npm run deploy
-```
-
-4. Your game will be published to https://[your-username].github.io/[repository-name]/
-
-## Game Structure
-
-The game has the following levels:
-
-1. Treble Clef Spaces (F, A, C, E)
-2. Treble Clef Lines (E, G, B, D, F)
-3. All Treble Clef Notes
-4. Bass Clef Spaces (A, C, E, G)
-5. Bass Clef Lines (G, B, D, F, A)
-6. All Bass Clef Notes
-7. Master Level (All notes from both clefs)
-
-Each level adapts to the player's performance, showing more frequently the notes that the player struggles with.
-
-## Live Demo
-
-Try the game at: https://kailuowang.github.io/MusicReadingGames/
+No external audio files are required, making the game fully self-contained.
 
 ## License
 
-This project is open source and available under the MIT License. 
+MIT 
