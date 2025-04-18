@@ -192,21 +192,8 @@ h1 {
 }
 
 .piano-key.disabled {
-    opacity: 0.3;
+    opacity: 0.25;
     cursor: default;
-}
-
-.piano-key.unavailable {
-    opacity: 0.3;
-    cursor: pointer;
-}
-
-.piano-key.unavailable:hover {
-    background-color: #f5f5f5; /* Light gray for white keys */
-}
-
-.black-key.unavailable:hover {
-    background-color: #444; /* Dark gray for black keys */
 }
 
 .note-name {
