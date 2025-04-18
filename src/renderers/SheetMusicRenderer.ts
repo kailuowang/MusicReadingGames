@@ -125,13 +125,6 @@ export class SheetMusicRenderer {
         // Draw the note
         this.drawNote(note);
         
-        // Display the octave number if available
-        if (note.octave !== undefined) {
-            this.ctx.fillStyle = '#666666';
-            this.ctx.font = '14px Arial';
-            this.ctx.fillText(`Octave: ${note.octave}`, this.width - 100, 30);
-        }
-        
         console.log(`Rendering ${note.name}${note.octave || ''} note on ${note.clef} clef`);
     }
     

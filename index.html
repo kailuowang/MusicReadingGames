@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Reading Game</title>
+    <!-- Add Font Awesome for the gear icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -27,8 +29,7 @@
         </div>
         <div id="controls">
             <button id="start-button">Start Game</button>
-            <button id="reset-button">Reset</button>
-            <button id="stats-button">Game Stats</button>
+            <button id="stats-button" class="icon-button"><i class="fas fa-cog"></i></button>
         </div>
     </div>
 
@@ -36,7 +37,7 @@
     <div id="stats-popup" class="popup">
         <div class="popup-content">
             <span class="close-button">&times;</span>
-            <h2>Game Statistics</h2>
+            <h2>Game Settings</h2>
             
             <!-- Profile Management Section -->
             <div class="stats-section">
@@ -61,8 +62,9 @@
                     <div class="toggle-buttons">
                         <button id="toggle-names-button" class="toggle-button">Show Note Names</button>
                         <button id="toggle-all-keys-button" class="toggle-button">Show All Notes</button>
+                        <button id="reset-button" class="toggle-button">Reset Progress</button>
                     </div>
-                    <button id="clear-storage-button" class="toggle-button">Clear Storage</button>
+                    <button id="clear-storage-button" class="toggle-button danger">Clear All Profiles</button>
                 </div>
             </div>
             

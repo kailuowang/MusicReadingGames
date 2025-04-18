@@ -58,8 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     resetButton.addEventListener('click', () => {
         console.log('Reset button clicked');
-        game.reset();
-        updateGameRunningUI();
+        if (confirm('This will reset your current profile progress. Are you sure?')) {
+            game.reset();
+            updateGameRunningUI();
+            statsPopup.classList.remove('active');
+        }
     });
     
     clearStorageButton.addEventListener('click', () => {
@@ -88,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const availableNotes = currentLevel.getAvailableNotes();
                     keyboard.renderKeyboard(availableNotes, (note: Note) => {
                         game['checkAnswer'](note);
-                    });
+                    }, currentLevel.getCurrentNote().clef);
                 }
             }
         }
@@ -110,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const availableNotes = currentLevel.getAvailableNotes();
                     keyboard.renderKeyboard(availableNotes, (note: Note) => {
                         game['checkAnswer'](note);
-                    });
+                    }, currentLevel.getCurrentNote().clef);
                 }
             }
         }

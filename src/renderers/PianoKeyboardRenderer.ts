@@ -56,39 +56,6 @@ export class PianoKeyboardRenderer {
             this.currentClef = notes[0].clef || 'treble';
         }
         
-        // Create toggle buttons container
-        const toggleContainer = document.createElement('div');
-        toggleContainer.className = 'toggle-buttons';
-        
-        // Create toggle button for note names
-        const toggleNamesButton = document.createElement('button');
-        toggleNamesButton.className = 'toggle-button';
-        toggleNamesButton.textContent = this.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
-        toggleNamesButton.addEventListener('click', () => {
-            this.showNoteNames = !this.showNoteNames;
-            toggleNamesButton.textContent = this.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
-            // Update keyboard display
-            this.renderKeyboard(notes, callback);
-        });
-        
-        // Create toggle button for showing all keys
-        const toggleAllKeysButton = document.createElement('button');
-        toggleAllKeysButton.className = 'toggle-button';
-        toggleAllKeysButton.textContent = this.showAllKeys ? 'Hide Unavailable Notes' : 'Show All Notes';
-        toggleAllKeysButton.addEventListener('click', () => {
-            this.showAllKeys = !this.showAllKeys;
-            toggleAllKeysButton.textContent = this.showAllKeys ? 'Hide Unavailable Notes' : 'Show All Notes';
-            // Update keyboard display
-            this.renderKeyboard(notes, callback);
-        });
-        
-        // Add toggle buttons to container
-        toggleContainer.appendChild(toggleNamesButton);
-        toggleContainer.appendChild(toggleAllKeysButton);
-        
-        // Add toggle buttons container to main container
-        this.container.appendChild(toggleContainer);
-        
         // Create container for the keyboard
         const keyboardsContainer = document.createElement('div');
         keyboardsContainer.className = 'keyboards-container';
