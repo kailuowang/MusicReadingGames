@@ -118,7 +118,6 @@ export class Game {
         // Try to load state from active profile
         const activeProfile = this.profileManager.getActiveProfile();
         if (activeProfile) {
-            console.log('Loaded profile:', activeProfile.name);
             this.state = activeProfile.gameState;
             
             // Apply saved display preferences
@@ -152,7 +151,6 @@ export class Game {
     private createDefaultProfile(): void {
         const defaultProfile = this.profileManager.createProfile('Player 1');
         this.state = defaultProfile.gameState;
-        console.log('Created default profile:', defaultProfile.name);
     }
     
     /**
@@ -322,8 +320,6 @@ export class Game {
     }
     
     public reset(): void {
-        console.log('Resetting game and clearing storage...');
-        
         // Reset state
         this.state = {
             currentLevelIndex: 0,
@@ -343,8 +339,6 @@ export class Game {
         
         // Notify the UI that the game is not running
         document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: false } }));
-        
-        console.log('Game reset complete.');
     }
     
     /**
@@ -364,7 +358,6 @@ export class Game {
         }
         
         const levelData = levels[levelIndex];
-        console.log(`Loading level ${levelIndex + 1}: ${levelData.name}`);
         this.currentLevel = new Level(levelData);
         
         // If the level has a new note, update the note history with an initial entry
@@ -816,24 +809,22 @@ export class Game {
     }
     
     /**
-     * Waits for clef images to load before starting the game
+     * Function to wait for clef images to load and then start the game
      */
     private waitForImagesAndStartGame(): void {
-        // Check if the renderer has loaded its images
         if (this.sheetRenderer.areImagesLoaded()) {
-            // Images already loaded, start the game immediately
+            // Load the current level
             this.loadLevel(this.state.currentLevelIndex);
-            console.log('Game started at level', this.state.currentLevelIndex + 1);
-            this.updateLevelRequirements();
             
             // Notify the UI that the game is running
             document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: true } }));
+            
+            // If we got here, we're ready to start
         } else {
-            // Images not loaded yet, wait and check again
-            console.log('Waiting for clef images to load before starting game...');
+            // Images aren't loaded yet, check again after a delay
             setTimeout(() => {
                 this.waitForImagesAndStartGame();
-            }, 100); // Check every 100ms
+            }, 100);
         }
     }
 } 

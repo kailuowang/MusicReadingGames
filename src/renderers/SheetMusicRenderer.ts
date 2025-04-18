@@ -49,12 +49,10 @@ export class SheetMusicRenderer {
         let imagesLoaded = 0;
         const onImageLoad = () => {
             imagesLoaded++;
-            console.log('Image loaded successfully:', imagesLoaded);
             if (imagesLoaded === 2) {
                 this.imagesLoaded = true;
                 // Initial draw of empty staff
                 this.drawStaff();
-                console.log('Clef images loaded and staff drawn');
             }
         };
         
@@ -88,7 +86,6 @@ export class SheetMusicRenderer {
             return;
         }
         
-        console.log('Trying to load treble clef from:', paths[index]);
         this.trebleClefImg.src = paths[index];
         
         // Set a timeout to try the next path if this one fails
@@ -105,7 +102,6 @@ export class SheetMusicRenderer {
             return;
         }
         
-        console.log('Trying to load bass clef from:', paths[index]);
         this.bassClefImg.src = paths[index];
         
         // Set a timeout to try the next path if this one fails
@@ -283,8 +279,6 @@ export class SheetMusicRenderer {
             this.ctx.moveTo(xPos - 30, y);
             this.ctx.lineTo(xPos + 30, y);
             this.ctx.stroke();
-            
-            console.log(`Drawing ledger line BELOW staff at y=${y}`);
         }
         // For notes above the staff
         else if (position > 5) {
@@ -305,8 +299,6 @@ export class SheetMusicRenderer {
             this.ctx.lineTo(xPos + 30, firstLedgerLineY);
             this.ctx.stroke();
             
-            console.log(`Drawing first ledger line at y=${firstLedgerLineY}`);
-            
             // Draw second ledger line for position 7+ (C6)
             if (position >= 7) {
                 // Draw a highlight rectangle first
@@ -320,8 +312,6 @@ export class SheetMusicRenderer {
                 this.ctx.moveTo(xPos - 30, secondLedgerLineY);
                 this.ctx.lineTo(xPos + 30, secondLedgerLineY);
                 this.ctx.stroke();
-                
-                console.log(`Drawing second ledger line at y=${secondLedgerLineY}`);
             }
         }
         

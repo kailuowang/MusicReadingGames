@@ -41,7 +41,6 @@ describe('LevelData Notes Coverage', () => {
       
       if (!isIncluded) {
         missingNotes.push(definedNote);
-        console.error(`Note ${definedNote.name}${definedNote.octave} on ${definedNote.clef} clef is not included in any level`);
       }
     });
     
@@ -83,14 +82,6 @@ describe('LevelData Notes Coverage', () => {
     const notCoveredNotes = notesForProgression.filter(note => 
       !progressionNotes.some(progNote => areNotesEqual(note, progNote))
     );
-    
-    // Print any notes not covered by the progression
-    if (notCoveredNotes.length > 0) {
-      console.warn(`${notCoveredNotes.length} notes are not covered in the learning progression:`);
-      notCoveredNotes.forEach(note => {
-        console.warn(`- ${note.name}${note.octave} on ${note.clef} clef`);
-      });
-    }
     
     // We should expect that all notes not in the first level are included in the progression
     // But we know there's one exception - G5 on treble clef - so we'll allow it

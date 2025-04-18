@@ -203,7 +203,6 @@ describe('Game', () => {
         
         // Need to skip this test since the ProfileManager now handles state
         // and is not fully mocked for this test case
-        console.log('Skipping "should load saved state" test - not compatible with ProfileManager')
     });
 
     test('should start the game and load first level', () => {
