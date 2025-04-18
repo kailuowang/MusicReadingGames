@@ -179,12 +179,24 @@ export class SheetMusicRenderer {
                     yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
                 }
             } else { // bass clef
-                if (note.isSpace) {
-                    // Spaces below or above staff on bass clef
-                    yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                if (note.position <= 0) {
+                    // Notes below the bass staff
+                    if (note.isSpace) {
+                        // Spaces below staff on bass clef (E2, C2)
+                        yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                    } else {
+                        // Lines below staff on bass clef (F2, D2)
+                        yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                    }
                 } else {
-                    // Lines below or above staff on bass clef
-                    yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                    // Notes above the bass staff
+                    if (note.isSpace) {
+                        // Spaces above staff on bass clef
+                        yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                    } else {
+                        // Lines above staff on bass clef
+                        yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                    }
                 }
             }
         } else {
@@ -335,13 +347,48 @@ export class SheetMusicRenderer {
         
         // For notes below the staff
         if (note.position <= 0) {
-            // Draw a ledger line below the staff for position 0 (D4/middle C)
-            const y = this.staffY + (2 + 1) * this.lineSpacing * 2; // First ledger line below staff
+            // Calculate bottom staff line Y position
+            const bottomStaffLineY = this.staffY + 4 * this.lineSpacing;
             
-            this.ctx.beginPath();
-            this.ctx.moveTo(xPos - ledgerLineExtension, y); // Wider extension
-            this.ctx.lineTo(xPos + ledgerLineExtension, y); // Wider extension
-            this.ctx.stroke();
+            // Draw ledger lines differently depending on the clef
+            if (note.clef === 'treble') {
+                // First ledger line below treble staff
+                const firstLedgerY = bottomStaffLineY + 2 * this.lineSpacing;
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(xPos - ledgerLineExtension, firstLedgerY);
+                this.ctx.lineTo(xPos + ledgerLineExtension, firstLedgerY);
+                this.ctx.stroke();
+                
+                // Second ledger line for extremely low notes in treble clef
+                if (note.position <= -1) {
+                    const secondLedgerY = firstLedgerY + 4 * this.lineSpacing;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(xPos - ledgerLineExtension, secondLedgerY);
+                    this.ctx.lineTo(xPos + ledgerLineExtension, secondLedgerY);
+                    this.ctx.stroke();
+                }
+            } else { // Bass clef
+                // First ledger line below bass staff (C3 line)
+                const firstLedgerY = bottomStaffLineY + 2 * this.lineSpacing;
+                
+                // Draw first ledger line for all notes with position <= 0 (F2, E2, D2, C2)
+                this.ctx.beginPath();
+                this.ctx.moveTo(xPos - ledgerLineExtension, firstLedgerY);
+                this.ctx.lineTo(xPos + ledgerLineExtension, firstLedgerY);
+                this.ctx.stroke();
+                
+                // Second ledger line for lower notes (D2, C2) with position <= -2
+                if (note.position <= -2) {
+                    const secondLedgerY = firstLedgerY + 4 * this.lineSpacing;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(xPos - ledgerLineExtension, secondLedgerY);
+                    this.ctx.lineTo(xPos + ledgerLineExtension, secondLedgerY);
+                    this.ctx.stroke();
+                }
+            }
         }
         // For notes above the staff
         else if (note.position > 5) {

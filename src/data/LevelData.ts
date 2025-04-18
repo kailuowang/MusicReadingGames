@@ -39,7 +39,13 @@ const bassClefNotes: Note[] = [
     { name: 'B', position: 2, isSpace: false, clef: 'bass', octave: 2 },
     { name: 'D', position: 3, isSpace: false, clef: 'bass', octave: 3 },
     { name: 'F', position: 4, isSpace: false, clef: 'bass', octave: 3 },
-    { name: 'A', position: 5, isSpace: false, clef: 'bass', octave: 3 }
+    { name: 'A', position: 5, isSpace: false, clef: 'bass', octave: 3 },
+    
+    // Ledger line notes below the bass clef
+    { name: 'F', position: 0, isSpace: true, clef: 'bass', octave: 2 },  // Space below lowest line
+    { name: 'E', position: 0, isSpace: false, clef: 'bass', octave: 2 }, // First ledger line below staff
+    { name: 'D', position: -1, isSpace: true, clef: 'bass', octave: 2 }, // Space below first ledger line
+    { name: 'C', position: -1, isSpace: false, clef: 'bass', octave: 2 }  // Second ledger line below staff
 ];
 
 // Get treble clef space notes (F, A, C, E)
@@ -55,10 +61,13 @@ const noteProgressionOrder: Note[] = [
     ...trebleClefNotes.filter(note => note.position === 0),
     
     // Then bass clef spaces (ACEG)
-    ...bassClefNotes.filter(note => note.isSpace),
+    ...bassClefNotes.filter(note => note.isSpace && note.position > 0),
     
     // Then bass clef lines (GBDFA)
-    ...bassClefNotes.filter(note => !note.isSpace),
+    ...bassClefNotes.filter(note => !note.isSpace && note.position > 0),
+    
+    // Then bass clef ledger notes below staff (F, E, D, C)
+    ...bassClefNotes.filter(note => note.position <= 0),
     
     // Finally, ledger line notes above the treble clef
     ...trebleClefNotes.filter(note => note.position > 5)
@@ -142,6 +151,21 @@ export class LevelData {
             description: 'Special level for testing ledger line notes rendering',
             clef: 'treble',
             notes: ledgerLineTrebleNotes,
+            ...standardLevelCriteria,
+            requiredSuccessCount: 5,  // Make it easier for testing
+            maxTimePerProblem: 10     // More time to observe the rendering
+        });
+        
+        // Get bass clef ledger notes below the staff
+        const bassClefBelowStaffNotes = bassClefNotes.filter(note => note.position <= 0);
+        
+        // Add special level for testing bass clef ledger notes below the staff
+        levels.push({
+            id: noteProgressionOrder.length + 4,
+            name: 'Bass Clef Ledger Notes Test',
+            description: 'Test level for notes below the bass clef staff (F2, E2, D2, C2)',
+            clef: 'bass',
+            notes: bassClefBelowStaffNotes,
             ...standardLevelCriteria,
             requiredSuccessCount: 5,  // Make it easier for testing
             maxTimePerProblem: 10     // More time to observe the rendering

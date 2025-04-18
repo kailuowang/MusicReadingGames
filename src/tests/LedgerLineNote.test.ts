@@ -157,9 +157,70 @@ describe('Ledger Line Note Tests', () => {
         // C6 (position 7, isSpace: false) should have 2 ledger lines
         expect(isLedgerLineNeeded(7, false)).toBe(true);
     });
+    
+    // Tests for bass clef ledger line notes
+    
+    test('F2 note should be rendered in the space below the lowest line in bass clef', () => {
+        const f2Note: Note = {
+            name: 'F',
+            position: 0,
+            isSpace: true, // F2 is in the space below the lowest line
+            clef: 'bass',
+            octave: 2
+        };
+        
+        sheetMusicRenderer.renderNote(f2Note);
+        expect(mockRenderNote).toHaveBeenCalledWith(f2Note);
+    });
+    
+    test('E2 ledger line note should be rendered on the first ledger line below bass clef', () => {
+        const e2Note: Note = {
+            name: 'E',
+            position: 0,
+            isSpace: false, // E2 is on the first ledger line below staff
+            clef: 'bass',
+            octave: 2
+        };
+        
+        sheetMusicRenderer.renderNote(e2Note);
+        expect(mockRenderNote).toHaveBeenCalledWith(e2Note);
+    });
+    
+    test('D2 note should be rendered in the space below the first ledger line in bass clef', () => {
+        const d2Note: Note = {
+            name: 'D',
+            position: -1,
+            isSpace: true, // D2 is in the space below first ledger line
+            clef: 'bass',
+            octave: 2
+        };
+        
+        sheetMusicRenderer.renderNote(d2Note);
+        expect(mockRenderNote).toHaveBeenCalledWith(d2Note);
+    });
+    
+    test('C2 ledger line note should be rendered on the second ledger line below bass clef', () => {
+        const c2Note: Note = {
+            name: 'C',
+            position: -1,
+            isSpace: false, // C2 is on the second ledger line below staff
+            clef: 'bass',
+            octave: 2
+        };
+        
+        sheetMusicRenderer.renderNote(c2Note);
+        expect(mockRenderNote).toHaveBeenCalledWith(c2Note);
+    });
 });
 
 // Helper function to simulate logic in the renderer
 function isLedgerLineNeeded(position: number, isSpace: boolean): boolean {
-    return position > 5 && !isSpace;
+    // Ledger lines are needed for line positions above the staff
+    if (position > 5 && !isSpace) return true;
+    
+    // Ledger lines are needed for line positions below the staff
+    if (position <= 0 && !isSpace) return true;
+    
+    // Space notes use the ledger lines of the line positions
+    return false;
 } 
