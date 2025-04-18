@@ -1,5 +1,5 @@
-import { Game } from './Game';
-import { Level } from './Level';
+import { Game } from '../game/Game';
+import { Level } from '../game/Level';
 import { SheetMusicRenderer } from '../renderers/SheetMusicRenderer';
 import { StorageManager } from '../utils/StorageManager';
 import { LevelData } from '../data/LevelData';
@@ -11,7 +11,7 @@ import { AudioPlayer } from '../utils/AudioPlayer';
 // --- Mocks ---
 
 // Mock the dependent classes
-jest.mock('./Level');
+jest.mock('../game/Level');
 jest.mock('../renderers/SheetMusicRenderer');
 jest.mock('../utils/StorageManager');
 jest.mock('../utils/AudioPlayer');

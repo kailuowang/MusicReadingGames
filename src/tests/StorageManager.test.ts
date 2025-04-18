@@ -1,5 +1,5 @@
 import { describe, it, beforeEach, expect, jest } from '@jest/globals'; // Explicitly import Jest globals
-import { StorageManager } from './StorageManager';
+import { StorageManager } from '../utils/StorageManager';
 import { GameState } from '../models/GameState';
 
 // Mock localStorage for testing environment (like Node.js)

@@ -1,56 +1,5 @@
 import { Note } from './Note';
 
-// Define a type for position info
-interface PositionInfo {
-    position: number;
-    isSpace: boolean;
-}
-
-// Define type for the clef position maps
-interface ClefPositionsMap {
-    [key: string]: PositionInfo;
-}
-
-// Maps note names to staff positions (1-5 lines, 0-4 spaces) for both treble and bass clefs
-const notePositionsMap: {
-    treble: ClefPositionsMap;
-    bass: ClefPositionsMap;
-} = {
-    treble: {
-        'C6': { position: 8, isSpace: false },
-        'B5': { position: 7, isSpace: true },
-        'A5': { position: 7, isSpace: false },
-        'G5': { position: 6, isSpace: true },
-        'F5': { position: 5, isSpace: false },
-        'E5': { position: 4, isSpace: true },
-        'D5': { position: 4, isSpace: false },
-        'C5': { position: 3, isSpace: true },
-        'B4': { position: 3, isSpace: false },
-        'A4': { position: 2, isSpace: true },
-        'G4': { position: 2, isSpace: false },
-        'F4': { position: 1, isSpace: true },
-        'E4': { position: 1, isSpace: false },
-        'D4': { position: 0, isSpace: true },
-        'C4': { position: 0, isSpace: false },
-    },
-    bass: {
-        'B3': { position: 6, isSpace: true },
-        'A3': { position: 5, isSpace: false },
-        'G3': { position: 4, isSpace: true },
-        'F3': { position: 4, isSpace: false },
-        'E3': { position: 3, isSpace: true },
-        'D3': { position: 3, isSpace: false },
-        'C3': { position: 2, isSpace: true },
-        'B2': { position: 2, isSpace: false },
-        'A2': { position: 1, isSpace: true },
-        'G2': { position: 1, isSpace: false },
-        'F2': { position: 0, isSpace: true },
-        'E2': { position: 0, isSpace: false },
-        'D2': { position: -1, isSpace: true },
-        'C2': { position: -1, isSpace: false },
-    }
-};
-
 export class NoteRepository {
     private static instance: NoteRepository;
     private notes: Map<string, Note> = new Map();
@@ -68,47 +17,64 @@ export class NoteRepository {
     }
     
     private initializeNotes(): void {
-        // Create notes for C2 to C6 range
-        const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        // Define the notes for the treble clef
+        const trebleClefNotes: Note[] = [
+            // F, A, C, E (the spaces in treble clef, "FACE")
+            { name: 'F', position: 1, isSpace: true, clef: 'treble', octave: 4 },
+            { name: 'A', position: 2, isSpace: true, clef: 'treble', octave: 4 },
+            { name: 'C', position: 3, isSpace: true, clef: 'treble', octave: 5 },
+            { name: 'E', position: 4, isSpace: true, clef: 'treble', octave: 5 },
+            
+            // E, G, B, D, F (the lines in treble clef, "Every Good Boy Does Fine")
+            { name: 'E', position: 1, isSpace: false, clef: 'treble', octave: 4 },
+            { name: 'G', position: 2, isSpace: false, clef: 'treble', octave: 4 },
+            { name: 'B', position: 3, isSpace: false, clef: 'treble', octave: 4 },
+            { name: 'D', position: 4, isSpace: false, clef: 'treble', octave: 5 },
+            { name: 'F', position: 5, isSpace: false, clef: 'treble', octave: 5 },
+            
+            // Ledger line notes below the staff
+            { name: 'D', position: 0, isSpace: true, clef: 'treble', octave: 4 },
+            { name: 'C', position: 0, isSpace: false, clef: 'treble', octave: 4 },
+            
+            // Ledger line notes above the staff
+            { name: 'G', position: 5, isSpace: true, clef: 'treble', octave: 5 },  // Space above top line F
+            { name: 'A', position: 6, isSpace: false, clef: 'treble', octave: 5 }, // First ledger line above staff
+            { name: 'B', position: 6, isSpace: true, clef: 'treble', octave: 5 },  // Space above first ledger line
+            { name: 'C', position: 7, isSpace: false, clef: 'treble', octave: 6 }  // Second ledger line above staff
+        ];
+
+        // Define the notes for the bass clef
+        const bassClefNotes: Note[] = [
+            // A, C, E, G (the spaces in bass clef, "All Cows Eat Grass")
+            { name: 'A', position: 1, isSpace: true, clef: 'bass', octave: 2 },
+            { name: 'C', position: 2, isSpace: true, clef: 'bass', octave: 3 },
+            { name: 'E', position: 3, isSpace: true, clef: 'bass', octave: 3 },
+            { name: 'G', position: 4, isSpace: true, clef: 'bass', octave: 3 },
+            
+            // G, B, D, F, A (the lines in bass clef, "Good Boys Do Fine Always")
+            { name: 'G', position: 1, isSpace: false, clef: 'bass', octave: 2 },
+            { name: 'B', position: 2, isSpace: false, clef: 'bass', octave: 2 },
+            { name: 'D', position: 3, isSpace: false, clef: 'bass', octave: 3 },
+            { name: 'F', position: 4, isSpace: false, clef: 'bass', octave: 3 },
+            { name: 'A', position: 5, isSpace: false, clef: 'bass', octave: 3 },
+            
+            // Space above the top line
+            { name: 'B', position: 5, isSpace: true, clef: 'bass', octave: 3 },
+            
+            // Ledger line notes below the bass clef
+            { name: 'F', position: 0, isSpace: true, clef: 'bass', octave: 2 },  // Space below lowest line
+            { name: 'E', position: 0, isSpace: false, clef: 'bass', octave: 2 }, // First ledger line below staff
+            { name: 'D', position: -1, isSpace: true, clef: 'bass', octave: 2 }, // Space below first ledger line
+            { name: 'C', position: -1, isSpace: false, clef: 'bass', octave: 2 }  // Second ledger line below staff
+        ];
         
-        for (let octave = 2; octave <= 6; octave++) {
-            for (const name of noteNames) {
-                // Skip notes above C6
-                if (octave === 6 && name !== 'C') continue;
-                
-                const clef = octave < 4 ? 'bass' : 'treble';
-                const noteKey = `${name}${octave}`;
-                
-                // Get staff position from the map
-                const positionInfo = notePositionsMap[clef][noteKey];
-                
-                // Skip if the note isn't in our standard positions map
-                if (!positionInfo) continue;
-                
-                // Create natural note
-                const naturalNote: Note = {
-                    name,
-                    position: positionInfo.position,
-                    isSpace: positionInfo.isSpace,
-                    octave,
-                    clef
-                };
-                this.notes.set(this.getNoteKey(name, undefined, octave), naturalNote);
-                
-                // Create sharp note (except E and B)
-                if (name !== 'E' && name !== 'B') {
-                    const sharpNote: Note = {
-                        name,
-                        position: positionInfo.position,
-                        isSpace: positionInfo.isSpace,
-                        octave,
-                        clef,
-                        accidental: 'sharp'
-                    };
-                    this.notes.set(this.getNoteKey(name, 'sharp', octave), sharpNote);
-                }
-            }
-        }
+        // Combine all notes
+        const allNotes = [...trebleClefNotes, ...bassClefNotes];
+        
+        // Add each note to the map for easy lookup
+        allNotes.forEach(note => {
+            this.notes.set(this.getNoteKey(note.name, note.accidental, note.octave), note);
+        });
     }
     
     private getNoteKey(name: string, accidental: 'sharp' | 'flat' | 'natural' | undefined, octave: number): string {

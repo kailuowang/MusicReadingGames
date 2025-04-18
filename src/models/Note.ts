@@ -5,4 +5,4 @@ export interface Note {
     clef: 'treble' | 'bass';
     accidental?: 'sharp' | 'flat' | 'natural';
     octave: number; // Octave is now required
-} 
+}

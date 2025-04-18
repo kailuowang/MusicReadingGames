@@ -1,4 +1,4 @@
-import { Level } from './Level';
+import { Level } from '../game/Level';
 import { Note } from '../models/Note';
 import { LevelConfig } from '../models/LevelConfig';
 import { LevelData } from '../data/LevelData';

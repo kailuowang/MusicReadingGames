@@ -1,4 +1,5 @@
 import { Note } from '../models/Note';
+import { NoteUtils } from '../utils/NoteUtils';
 
 export class SheetMusicRenderer {
     private container: HTMLElement;
@@ -336,6 +337,9 @@ export class SheetMusicRenderer {
     
     // New method to draw ledger lines specifically for a note
     private drawLedgerLinesForNote(note: Note): void {
+        // Skip if the note doesn't need ledger lines
+        if (!NoteUtils.isLedgerLineNote(note)) return;
+
         const xPos = this.width / 2; // Same x position as the note
         
         // Make ledger lines match the staff lines but 20% wider
@@ -346,7 +350,7 @@ export class SheetMusicRenderer {
         const ledgerLineExtension = 18; // Original was 15px, 15 * 1.2 = 18px
         
         // For notes below the staff
-        if (note.position <= 0) {
+        if (NoteUtils.isBelowStaff(note)) {
             // Calculate bottom staff line Y position
             const bottomStaffLineY = this.staffY + 4 * this.lineSpacing;
             
@@ -391,7 +395,7 @@ export class SheetMusicRenderer {
             }
         }
         // For notes above the staff
-        else if (note.position > 5) {
+        else if (NoteUtils.isAboveStaff(note)) {
             // Calculate correct Y positions for ledger lines
             const topStaffLineY = this.staffY - 2*this.lineSpacing*2; // Y of the top (5th) staff line
             
