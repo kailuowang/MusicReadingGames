@@ -490,6 +490,76 @@ export class Game {
     private showFeedback(isCorrect: boolean, message: string): void {
         this.feedbackElement.textContent = message;
         this.feedbackElement.className = isCorrect ? 'correct' : 'incorrect';
+        
+        // Reset animation by removing active class
+        this.feedbackElement.classList.remove('active');
+        
+        // Force a reflow to restart animation
+        void this.feedbackElement.offsetWidth;
+        
+        // Add active class to trigger animation
+        this.feedbackElement.classList.add('active');
+        
+        // Create celebration effects for correct answers
+        if (isCorrect) {
+            this.showCelebration();
+        }
+    }
+    
+    /**
+     * Creates a celebration effect with confetti and stars
+     */
+    private showCelebration(): void {
+        const celebrationContainer = document.querySelector('.celebration-container');
+        if (!celebrationContainer) return;
+        
+        // Clear any existing celebration elements
+        celebrationContainer.innerHTML = '';
+        
+        // Create confetti pieces
+        for (let i = 0; i < 20; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti-piece';
+            confetti.style.left = `${Math.random() * 100}%`;
+            confetti.style.width = `${5 + Math.random() * 10}px`;
+            confetti.style.height = `${10 + Math.random() * 15}px`;
+            confetti.style.backgroundColor = this.getRandomColor();
+            confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+            confetti.style.animationDuration = `${1 + Math.random() * 2}s`;
+            
+            celebrationContainer.appendChild(confetti);
+        }
+        
+        // Create stars
+        for (let i = 0; i < 5; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 0.5}s`;
+            
+            celebrationContainer.appendChild(star);
+        }
+        
+        // Remove celebration elements after animation
+        setTimeout(() => {
+            celebrationContainer.innerHTML = '';
+        }, 3000);
+    }
+    
+    /**
+     * Returns a random bright color for confetti
+     */
+    private getRandomColor(): string {
+        const colors = [
+            '#3498db', // blue
+            '#e74c3c', // red
+            '#2ecc71', // green
+            '#f39c12', // orange
+            '#9b59b6', // purple
+            '#1abc9c', // turquoise
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
     }
     
     private clearFeedback(): void {
@@ -589,20 +659,20 @@ export class Game {
         
         // Update streak styling
         if (currentStreak >= requiredSuccessCount) {
-            this.streakElement.className = 'goal-met';
+            this.streakElement.className = 'stats-value goal-met';
         } else if (currentStreak >= requiredSuccessCount / 2) {
-            this.streakElement.className = 'progress';
+            this.streakElement.className = 'stats-value progress';
         } else {
-            this.streakElement.className = '';
+            this.streakElement.className = 'stats-value';
         }
         
         // Update speed styling
         if (avgSpeed > 0 && avgSpeed < maxTimePerProblem) {
-            this.speedElement.className = 'goal-met';
+            this.speedElement.className = 'stats-value goal-met';
         } else if (avgSpeed > 0 && avgSpeed < maxTimePerProblem * 1.5) {
-            this.speedElement.className = 'progress';
+            this.speedElement.className = 'stats-value progress';
         } else {
-            this.speedElement.className = '';
+            this.speedElement.className = 'stats-value';
         }
     }
     
