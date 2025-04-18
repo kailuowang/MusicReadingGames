@@ -160,9 +160,13 @@ export class Game {
     /**
      * Gets the active profile
      */
-    public getActiveProfile(): { id: string; name: string } | null {
+    public getActiveProfile(): { id: string; name: string; displayPreferences?: { showNoteNames: boolean; showAllNotes: boolean } } | null {
         const profile = this.profileManager.getActiveProfile();
-        return profile ? { id: profile.id, name: profile.name } : null;
+        return profile ? { 
+            id: profile.id, 
+            name: profile.name,
+            displayPreferences: profile.displayPreferences
+        } : null;
     }
     
     /**

@@ -22,11 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const profilesList = document.getElementById('profiles-list') as HTMLDivElement;
     const newProfileNameInput = document.getElementById('new-profile-name') as HTMLInputElement;
     const addProfileButton = document.getElementById('add-profile-button') as HTMLButtonElement;
-    const profileEditModal = document.getElementById('profile-edit-modal') as HTMLDivElement;
-    const editProfileNameInput = document.getElementById('edit-profile-name') as HTMLInputElement;
-    const saveProfileButton = document.getElementById('save-profile-button') as HTMLButtonElement;
-    const deleteProfileButton = document.getElementById('delete-profile-button') as HTMLButtonElement;
-    const modalCloseButton = document.querySelector('.modal-close-button') as HTMLSpanElement;
     
     // Current profile being edited
     let currentEditingProfileId: string | null = null;
@@ -157,41 +152,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    saveProfileButton.addEventListener('click', () => {
-        if (currentEditingProfileId) {
-            const newName = editProfileNameInput.value.trim();
-            if (newName) {
-                game.updateProfileName(currentEditingProfileId, newName);
-                profileEditModal.classList.remove('active');
-                updateProfilesList();
+    // Function to toggle inline edit form visibility
+    function toggleEditForm(profileItem: HTMLElement, show: boolean) {
+        // Close any currently open edit forms
+        const allProfileItems = profilesList.querySelectorAll('.profile-item');
+        allProfileItems.forEach(item => {
+            if (item !== profileItem) {
+                item.classList.remove('editing');
             }
+        });
+        
+        if (show) {
+            profileItem.classList.add('editing');
+        } else {
+            profileItem.classList.remove('editing');
+            currentEditingProfileId = null;
         }
-    });
+    }
     
-    deleteProfileButton.addEventListener('click', () => {
-        if (currentEditingProfileId && confirm('Are you sure you want to delete this profile? All progress will be lost.')) {
-            game.removeProfile(currentEditingProfileId);
-            profileEditModal.classList.remove('active');
+    // Function to handle profile name save
+    function saveProfileName(profileId: string, nameInput: HTMLInputElement) {
+        const newName = nameInput.value.trim();
+        if (newName) {
+            game.updateProfileName(profileId, newName);
             updateProfilesList();
         }
-    });
+    }
     
-    modalCloseButton.addEventListener('click', () => {
-        profileEditModal.classList.remove('active');
-    });
-    
-    // Close the modal when clicking outside the content
-    window.addEventListener('click', (event) => {
-        if (event.target === profileEditModal) {
-            profileEditModal.classList.remove('active');
+    // Function to handle profile deletion
+    function deleteProfile(profileId: string) {
+        if (confirm('Are you sure you want to delete this profile? All progress will be lost.')) {
+            game.removeProfile(profileId);
+            updateProfilesList();
         }
-    });
-    
-    // Function to open the profile edit modal
-    function openProfileEditModal(profileId: string, profileName: string) {
-        currentEditingProfileId = profileId;
-        editProfileNameInput.value = profileName;
-        profileEditModal.classList.add('active');
     }
     
     // Function to render the profiles list
@@ -219,19 +212,87 @@ document.addEventListener('DOMContentLoaded', () => {
             const editButton = document.createElement('button');
             editButton.className = 'profile-edit-button';
             editButton.textContent = 'Edit';
+            
+            // Create edit form (initially hidden)
+            const editForm = document.createElement('div');
+            editForm.className = 'profile-edit-form-inline';
+            
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'edit-profile-input';
+            nameInput.value = profile.name;
+            nameInput.placeholder = 'Profile name';
+            
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'profile-edit-actions';
+            
+            const saveButton = document.createElement('button');
+            saveButton.className = 'save-profile-button';
+            saveButton.textContent = 'Save';
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-profile-button danger';
+            deleteButton.textContent = 'Delete';
+            
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'cancel-edit-button';
+            cancelButton.textContent = 'Cancel';
+            
+            // Add event listeners
             editButton.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent the profile selection when clicking edit
-                openProfileEditModal(profile.id, profile.name);
+                currentEditingProfileId = profile.id;
+                toggleEditForm(profileItem, true);
             });
             
+            saveButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                saveProfileName(profile.id, nameInput);
+                toggleEditForm(profileItem, false);
+            });
+            
+            deleteButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteProfile(profile.id);
+            });
+            
+            cancelButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleEditForm(profileItem, false);
+            });
+            
+            // Also save when pressing Enter on the input
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    saveProfileName(profile.id, nameInput);
+                    toggleEditForm(profileItem, false);
+                }
+            });
+            
+            // Assemble the edit form
+            actionButtons.appendChild(saveButton);
+            actionButtons.appendChild(cancelButton);
+            actionButtons.appendChild(deleteButton);
+            
+            editForm.appendChild(nameInput);
+            editForm.appendChild(actionButtons);
+            
+            // Add elements to profile item
             profileItem.appendChild(profileNameSpan);
             profileItem.appendChild(editButton);
+            profileItem.appendChild(editForm);
             
             // Select this profile when clicking on it
-            profileItem.addEventListener('click', () => {
-                if (!profile.isActive) {
-                    game.setActiveProfile(profile.id);
-                    updateProfilesList();
+            profileItem.addEventListener('click', (e) => {
+                // Only select if not in edit mode and we're not clicking a button or input
+                const target = e.target as HTMLElement;
+                if (!profileItem.classList.contains('editing') && 
+                    target.tagName !== 'BUTTON' && 
+                    target.tagName !== 'INPUT') {
+                    if (!profile.isActive) {
+                        game.setActiveProfile(profile.id);
+                        updateProfilesList();
+                    }
                 }
             });
             
@@ -405,14 +466,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * Update the toggle buttons text based on current display preferences
      */
     function updateToggleButtonsText() {
-        const preferences = game.getDisplayPreferences();
-        
-        if (toggleNamesButton) {
-            toggleNamesButton.textContent = preferences.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
-        }
-        
-        if (toggleAllKeysButton) {
-            toggleAllKeysButton.textContent = preferences.showAllNotes ? 'Hide Unavailable Notes' : 'Show All Notes';
+        const activeProfile = game.getActiveProfile();
+        if (activeProfile && activeProfile.displayPreferences) {
+            const { showNoteNames, showAllNotes } = activeProfile.displayPreferences;
+            toggleNamesButton.textContent = showNoteNames ? 'Hide Note Names' : 'Show Note Names';
+            toggleAllKeysButton.textContent = showAllNotes ? 'Hide Unavailable Notes' : 'Show All Notes';
         }
     }
+    
+    // Initial update of profiles list
+    updateProfilesList();
 }); 

@@ -532,6 +532,7 @@ button:hover {
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
     cursor: pointer;
+    flex-wrap: wrap;
 }
 
 .profile-item:last-child {
@@ -551,6 +552,7 @@ button:hover {
     flex-grow: 1;
 }
 
+/* Profile actions styles */
 .profile-actions {
     margin-top: 10px;
 }
@@ -560,12 +562,49 @@ button:hover {
     gap: 10px;
 }
 
-#new-profile-name, #edit-profile-name {
+#new-profile-name {
     flex-grow: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
+}
+
+/* Inline profile editing styles */
+.profile-edit-form-inline {
+    width: 100%;
+    margin-top: 10px;
+    display: none;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.profile-item.editing .profile-edit-form-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-edit-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.profile-edit-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.profile-edit-button:hover {
+    background-color: #2980b9;
 }
 
 #add-profile-button {
@@ -581,18 +620,56 @@ button:hover {
     background-color: #27ae60;
 }
 
-.profile-edit-button {
-    background-color: #3498db;
-    color: white;
-    border: none;
+.edit-profile-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
 }
 
-.profile-edit-button:hover {
-    background-color: #2980b9;
+.save-profile-button, .delete-profile-button, .cancel-edit-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.save-profile-button {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.save-profile-button:hover {
+    background-color: #27ae60;
+}
+
+.cancel-edit-button {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.cancel-edit-button:hover {
+    background-color: #6b7a7c;
+}
+
+.delete-profile-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.delete-profile-button:hover {
+    background-color: #c0392b;
+}
+
+.danger {
+    background-color: #e74c3c !important;
+    color: white !important;
+}
+
+.danger:hover {
+    background-color: #c0392b !important;
 }
 
 /* Modal */
@@ -668,15 +745,6 @@ button:hover {
 
 #delete-profile-button:hover {
     background-color: #c0392b;
-}
-
-.danger {
-    background-color: #e74c3c !important;
-    color: white !important;
-}
-
-.danger:hover {
-    background-color: #c0392b !important;
 }
 
 .icon-button {
