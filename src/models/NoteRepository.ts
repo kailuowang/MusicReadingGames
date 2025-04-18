@@ -34,6 +34,7 @@ const notePositionsMap: {
         'C4': { position: 0, isSpace: false },
     },
     bass: {
+        'B3': { position: 6, isSpace: true },
         'A3': { position: 5, isSpace: false },
         'G3': { position: 4, isSpace: true },
         'F3': { position: 4, isSpace: false },
