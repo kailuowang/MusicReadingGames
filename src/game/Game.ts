@@ -7,6 +7,61 @@ import { StorageManager } from '../utils/StorageManager';
 import { PianoKeyboardRenderer } from '../renderers/PianoKeyboardRenderer';
 import { NoteRepository } from '../models/NoteRepository';
 
+// Cartoon characters and encouraging messages
+interface CartoonCharacter {
+    name: string;
+    messages: string[];
+    avatar: string;
+}
+
+const CARTOON_CHARACTERS: CartoonCharacter[] = [
+    {
+        name: 'Mickey Mouse',
+        messages: [
+            'Hot dog! You\'re on a roll!',
+            'Oh boy! Keep up the great work!',
+            'Gosh, you\'re getting good at this!'
+        ],
+        avatar: 'https://i.imgur.com/VgtMjFS.png'
+    },
+    {
+        name: 'SpongeBob',
+        messages: [
+            'I\'m ready! You\'re ready! For more notes!',
+            'Sweet victory! Keep it up!',
+            'That\'s the spirit! You\'re doing great!'
+        ],
+        avatar: 'https://i.imgur.com/yUdT8BN.png'
+    },
+    {
+        name: 'Bugs Bunny',
+        messages: [
+            'Eh, what\'s up, Doc? Nice streak you got there!',
+            'That\'s all folks... Just kidding, keep going!',
+            'You\'re doing swell, Doc!'
+        ],
+        avatar: 'https://i.imgur.com/TH3zGLz.png'
+    },
+    {
+        name: 'Pikachu',
+        messages: [
+            'Pika Pika! You\'re electrifying!',
+            'Pikachu is impressed by your skills!',
+            'Pika Pi! You\'re on fire!'
+        ],
+        avatar: 'https://i.imgur.com/ziUD63N.png'
+    },
+    {
+        name: 'Homer Simpson',
+        messages: [
+            'Woo hoo! Four correct notes!',
+            'Mmm... musical notes...',
+            'D\'oh! I mean... Bravo!'
+        ],
+        avatar: 'https://i.imgur.com/8QpzSlW.png'
+    }
+];
+
 export class Game {
     private state: GameState;
     private currentLevel: Level | null = null;
@@ -21,6 +76,8 @@ export class Game {
     private streakRequiredElement: HTMLElement;
     private speedRequiredElement: HTMLElement;
     private noteDisplayTime: number = 0; // Store when the current note was displayed
+    private lastStreakAnimation: number = 0; // Track when we last showed a streak animation
+    private characterElement: HTMLElement | null = null;
     
     constructor() {
         this.state = {
@@ -319,6 +376,16 @@ export class Game {
         
         // Update visual feedback
         this.updateVisualFeedback();
+        
+        // Show cartoon character at 4-streak
+        if (currentStreak === 4) {
+            // Check if we haven't shown an animation recently (avoid showing it multiple times)
+            const now = Date.now();
+            if (now - this.lastStreakAnimation > 5000) { // Only show if it's been 5+ seconds
+                this.showCartoonCharacter();
+                this.lastStreakAnimation = now;
+            }
+        }
     }
     
     private updateLevelRequirements(): void {
@@ -371,5 +438,68 @@ export class Game {
     
     private clearNoteOptions(): void {
         this.noteOptionsContainer.innerHTML = '';
+    }
+    
+    /**
+     * Displays a random cartoon character with an encouraging message
+     */
+    private showCartoonCharacter(): void {
+        // Remove any existing character element
+        this.removeCharacterElement();
+        
+        // Select a random character
+        const randomCharacter = CARTOON_CHARACTERS[Math.floor(Math.random() * CARTOON_CHARACTERS.length)];
+        
+        // Select a random message from the character
+        const randomMessage = randomCharacter.messages[Math.floor(Math.random() * randomCharacter.messages.length)];
+        
+        // Create the character element
+        this.characterElement = document.createElement('div');
+        this.characterElement.className = 'cartoon-character-popup';
+        
+        // Add character avatar, name and message
+        const characterContent = `
+            <div class="character-avatar">
+                <img src="${randomCharacter.avatar}" alt="${randomCharacter.name}">
+            </div>
+            <div class="character-content">
+                <h3>${randomCharacter.name}</h3>
+                <p>${randomMessage}</p>
+            </div>
+        `;
+        
+        this.characterElement.innerHTML = characterContent;
+        
+        // Add to document body
+        document.body.appendChild(this.characterElement);
+        
+        // Make sure the element is visible with animation
+        setTimeout(() => {
+            if (this.characterElement) {
+                this.characterElement.classList.add('visible');
+            }
+        }, 10);
+        
+        // Remove after a few seconds
+        setTimeout(() => {
+            this.removeCharacterElement();
+        }, 3000);
+    }
+    
+    /**
+     * Removes the character element if it exists
+     */
+    private removeCharacterElement(): void {
+        if (this.characterElement && document.body.contains(this.characterElement)) {
+            this.characterElement.classList.remove('visible');
+            
+            // Clean up after animation
+            setTimeout(() => {
+                if (this.characterElement && document.body.contains(this.characterElement)) {
+                    document.body.removeChild(this.characterElement);
+                    this.characterElement = null;
+                }
+            }, 500);
+        }
     }
 } 
