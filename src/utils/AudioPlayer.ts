@@ -1,3 +1,10 @@
+// Add a type declaration for webkitAudioContext
+declare global {
+    interface Window {
+        webkitAudioContext: typeof AudioContext;
+    }
+}
+
 /**
  * Utility class for playing audio in the game
  */
@@ -5,9 +12,14 @@ export class AudioPlayer {
     private static instance: AudioPlayer;
     private audioContext: AudioContext | null = null;
     private isInitialized: boolean = false;
+    private isTestEnvironment: boolean = false;
     
     // Prevent direct instantiation
-    private constructor() {}
+    private constructor() {
+        // Check if we're in a test environment (no window.AudioContext)
+        this.isTestEnvironment = typeof window === 'undefined' || 
+                                 typeof (window.AudioContext || window.webkitAudioContext) === 'undefined';
+    }
     
     /**
      * Get the singleton instance
@@ -23,18 +35,20 @@ export class AudioPlayer {
      * Initialize the audio context (must be called from a user interaction)
      */
     public initialize(): void {
-        if (!this.isInitialized) {
-            try {
-                this.audioContext = new AudioContext();
-                this.isInitialized = true;
-                
-                // Resume if suspended
-                if (this.audioContext.state === 'suspended') {
-                    this.audioContext.resume();
-                }
-            } catch (error) {
-                console.error('Failed to initialize AudioContext:', error);
+        if (this.isInitialized || this.isTestEnvironment) return;
+        
+        try {
+            // Use proper browser prefixes for AudioContext
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            this.audioContext = new AudioContextClass();
+            this.isInitialized = true;
+            
+            // Resume if suspended
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
             }
+        } catch (error) {
+            console.error('Failed to initialize AudioContext:', error);
         }
     }
     
@@ -42,6 +56,8 @@ export class AudioPlayer {
      * Play a simple test sound to verify audio is working
      */
     public testSound(): void {
+        if (this.isTestEnvironment) return;
+        
         if (!this.audioContext) {
             this.initialize();
         }
@@ -79,6 +95,8 @@ export class AudioPlayer {
      * Play a piano note based on note name and octave
      */
     public playNote(noteName: string, octave: number): void {
+        if (this.isTestEnvironment) return;
+        
         if (!this.audioContext) {
             this.initialize();
         }
@@ -121,6 +139,8 @@ export class AudioPlayer {
      * Play a synthesized error/thud sound
      */
     public playErrorSound(): void {
+        if (this.isTestEnvironment) return;
+        
         if (!this.audioContext) {
             this.initialize();
         }
