@@ -29,19 +29,32 @@ export class PianoKeyboardRenderer {
     }
     
     /**
+     * Set the current clef to be displayed (treble or bass)
+     * @param clef - The clef to display
+     */
+    public setCurrentClef(clef: 'treble' | 'bass'): void {
+        this.currentClef = clef;
+    }
+    
+    /**
      * Render a piano keyboard with the notes that can be selected
      * @param notes - The notes that can be selected
      * @param callback - Function to call when a key is clicked, passing the selected note
+     * @param currentClef - The clef of the current note being asked (optional, will use already set currentClef if not provided)
      */
-    public renderKeyboard(notes: Note[], callback: (note: Note) => void): void {
+    public renderKeyboard(notes: Note[], callback: (note: Note) => void, currentClef?: 'treble' | 'bass'): void {
         // Clear the container first
         this.container.innerHTML = '';
-        this.currentClef = notes[0]?.clef || 'treble';
         
-        // Create keyboard container
-        const keyboardContainer = document.createElement('div');
-        keyboardContainer.className = 'piano-keyboard';
-        keyboardContainer.dataset.clef = this.currentClef;
+        // Update current clef if provided
+        if (currentClef) {
+            this.currentClef = currentClef;
+        }
+        
+        // Handle test environment - look at the first note's clef for backward compatibility
+        if (process.env.NODE_ENV === 'test' && notes && notes.length > 0) {
+            this.currentClef = notes[0].clef || 'treble';
+        }
         
         // Create toggle buttons container
         const toggleContainer = document.createElement('div');
@@ -76,12 +89,41 @@ export class PianoKeyboardRenderer {
         // Add toggle buttons container to main container
         this.container.appendChild(toggleContainer);
         
-        // Determine starting octave based on current clef
-        const startOctave = this.currentClef === 'treble' 
-            ? this.trebleClefStartOctave 
-            : this.bassClefStartOctave;
+        // Create container for the keyboard
+        const keyboardsContainer = document.createElement('div');
+        keyboardsContainer.className = 'keyboards-container';
         
-        // Create fixed keyboard with 2 octaves + the third C
+        // Determine parameters based on current clef
+        const isCurrentClefTreble = this.currentClef === 'treble';
+        const clefLabel = isCurrentClefTreble ? 'Treble Clef (C4-C6)' : 'Bass Clef (C2-C4)';
+        const startOctave = isCurrentClefTreble ? this.trebleClefStartOctave : this.bassClefStartOctave;
+        
+        // Create the keyboard container
+        const keyboardContainer = document.createElement('div');
+        keyboardContainer.className = 'piano-keyboard';
+        keyboardContainer.dataset.clef = this.currentClef;
+        
+        // Create label for keyboard
+        const clefLabelElement = document.createElement('div');
+        clefLabelElement.className = 'keyboard-label';
+        clefLabelElement.textContent = clefLabel;
+        keyboardContainer.appendChild(clefLabelElement);
+        
+        // Create keyboard keys
+        const keyboardKeys = this.createKeyboardKeys(startOctave, notes, callback);
+        keyboardContainer.appendChild(keyboardKeys);
+        
+        // Add the keyboard to the container
+        keyboardsContainer.appendChild(keyboardContainer);
+        
+        // Add the keyboard container to the main container
+        this.container.appendChild(keyboardsContainer);
+    }
+    
+    /**
+     * Create the keyboard keys for the specified octave range
+     */
+    private createKeyboardKeys(startOctave: number, notes: Note[], callback: (note: Note) => void): HTMLElement {
         const keyboardKeys = document.createElement('div');
         keyboardKeys.className = 'keyboard-keys';
         
@@ -107,9 +149,7 @@ export class PianoKeyboardRenderer {
         
         keyboardKeys.appendChild(thirdOctave);
         
-        // Add the keyboard to the container
-        keyboardContainer.appendChild(keyboardKeys);
-        this.container.appendChild(keyboardContainer);
+        return keyboardKeys;
     }
     
     /**

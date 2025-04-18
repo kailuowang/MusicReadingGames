@@ -220,11 +220,12 @@ export class Game {
         if (!this.currentLevel) return;
         
         const availableNotes = this.currentLevel.getAvailableNotes();
+        const currentNote = this.currentLevel.getCurrentNote();
         
         // Use the piano keyboard renderer to display the notes
         this.keyboardRenderer.renderKeyboard(availableNotes, (selectedNote: Note) => {
             this.checkAnswer(selectedNote);
-        });
+        }, currentNote.clef);
     }
     
     private checkAnswer(selectedNote: Note): void {

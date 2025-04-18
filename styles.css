@@ -105,8 +105,28 @@ h1 {
     position: relative;
 }
 
+/* Styles for dual keyboards */
+.keyboards-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+}
+
+.keyboard-label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    text-align: center;
+}
+
+.piano-keyboard[data-clef="treble"] {
+    background-color: #e1f5fe; /* Light blue for treble clef */
+}
+
 .piano-keyboard[data-clef="bass"] {
-    background-color: #d4e6f1;
+    background-color: #d4e6f1; /* Slightly different blue for bass clef */
 }
 
 .keyboard-keys {
