@@ -22,7 +22,7 @@ const CARTOON_CHARACTERS: CartoonCharacter[] = [
             'Oh boy! Keep up the great work!',
             'Gosh, you\'re getting good at this!'
         ],
-        avatar: 'https://i.imgur.com/VgtMjFS.png'
+        avatar: './imgs/mickeymouse.jpg'
     },
     {
         name: 'SpongeBob',
@@ -31,7 +31,7 @@ const CARTOON_CHARACTERS: CartoonCharacter[] = [
             'Sweet victory! Keep it up!',
             'That\'s the spirit! You\'re doing great!'
         ],
-        avatar: 'https://i.imgur.com/yUdT8BN.png'
+        avatar: './imgs/spongebob.png'
     },
     {
         name: 'Bugs Bunny',
@@ -40,7 +40,7 @@ const CARTOON_CHARACTERS: CartoonCharacter[] = [
             'That\'s all folks... Just kidding, keep going!',
             'You\'re doing swell, Doc!'
         ],
-        avatar: 'https://i.imgur.com/TH3zGLz.png'
+        avatar: './imgs/bugsbunny.jpg'
     },
     {
         name: 'Pikachu',
@@ -49,7 +49,7 @@ const CARTOON_CHARACTERS: CartoonCharacter[] = [
             'Pikachu is impressed by your skills!',
             'Pika Pi! You\'re on fire!'
         ],
-        avatar: 'https://i.imgur.com/ziUD63N.png'
+        avatar: './imgs/pikachu.jpg'
     },
     {
         name: 'Homer Simpson',
@@ -58,7 +58,7 @@ const CARTOON_CHARACTERS: CartoonCharacter[] = [
             'Mmm... musical notes...',
             'D\'oh! I mean... Bravo!'
         ],
-        avatar: 'https://i.imgur.com/8QpzSlW.png'
+        avatar: './imgs/homersimpson.jpg'
     }
 ];
 
