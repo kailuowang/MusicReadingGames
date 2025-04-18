@@ -211,6 +211,22 @@ describe('Ledger Line Note Tests', () => {
         sheetMusicRenderer.renderNote(c2Note);
         expect(mockRenderNote).toHaveBeenCalledWith(c2Note);
     });
+    
+    test('B3 note should be rendered in the space above the top line in bass clef', () => {
+        const b3Note: Note = {
+            name: 'B',
+            position: 5,
+            isSpace: true, // B3 is in the space above the top line
+            clef: 'bass',
+            octave: 3
+        };
+        
+        sheetMusicRenderer.renderNote(b3Note);
+        expect(mockRenderNote).toHaveBeenCalledWith(b3Note);
+        
+        // Verify no ledger line is needed for B3 as it's just in the space above the staff
+        expect(isLedgerLineNeeded(5, true)).toBe(false);
+    });
 });
 
 // Helper function to simulate logic in the renderer

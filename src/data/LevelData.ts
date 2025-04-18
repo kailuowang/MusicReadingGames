@@ -41,6 +41,9 @@ const bassClefNotes: Note[] = [
     { name: 'F', position: 4, isSpace: false, clef: 'bass', octave: 3 },
     { name: 'A', position: 5, isSpace: false, clef: 'bass', octave: 3 },
     
+    // Space above the top line
+    { name: 'B', position: 5, isSpace: true, clef: 'bass', octave: 3 },
+    
     // Ledger line notes below the bass clef
     { name: 'F', position: 0, isSpace: true, clef: 'bass', octave: 2 },  // Space below lowest line
     { name: 'E', position: 0, isSpace: false, clef: 'bass', octave: 2 }, // First ledger line below staff
@@ -127,6 +130,22 @@ export class LevelData {
             // Add the new note to the learned notes for next level
             learnedNotes = [...learnedNotes, newNote];
         }
+            // Add a special test level for ledger line notes
+        const ledgerLineTrebleNotes = trebleClefNotes.filter(note => 
+            (note.position <= 0) || (note.position > 5));
+        const bassClefBelowStaffNotes = bassClefNotes.filter(note => note.position <= 0);
+        
+        // Special level for testing ledger line rendering
+        levels.push({
+            id: noteProgressionOrder.length + 3,
+            name: 'Ledger Line Test',
+            description: 'Special level for testing ledger line notes rendering',
+            clef: 'treble',
+            notes: [...ledgerLineTrebleNotes, ...bassClefBelowStaffNotes],
+            ...standardLevelCriteria,
+            requiredSuccessCount: 5,  // Make it easier for testing
+            maxTimePerProblem: 10     // More time to observe the rendering
+        });
         
         // Add a master level with all notes
         levels.push({
@@ -140,36 +159,8 @@ export class LevelData {
             maxTimePerProblem: 4
         });
         
-        // Add a special test level for ledger line notes
-        const ledgerLineTrebleNotes = trebleClefNotes.filter(note => 
-            (note.position <= 0) || (note.position > 5));
-        
-        // Special level for testing ledger line rendering
-        levels.push({
-            id: noteProgressionOrder.length + 3,
-            name: 'Ledger Line Test',
-            description: 'Special level for testing ledger line notes rendering',
-            clef: 'treble',
-            notes: ledgerLineTrebleNotes,
-            ...standardLevelCriteria,
-            requiredSuccessCount: 5,  // Make it easier for testing
-            maxTimePerProblem: 10     // More time to observe the rendering
-        });
-        
-        // Get bass clef ledger notes below the staff
-        const bassClefBelowStaffNotes = bassClefNotes.filter(note => note.position <= 0);
-        
-        // Add special level for testing bass clef ledger notes below the staff
-        levels.push({
-            id: noteProgressionOrder.length + 4,
-            name: 'Bass Clef Ledger Notes Test',
-            description: 'Test level for notes below the bass clef staff (F2, E2, D2, C2)',
-            clef: 'bass',
-            notes: bassClefBelowStaffNotes,
-            ...standardLevelCriteria,
-            requiredSuccessCount: 5,  // Make it easier for testing
-            maxTimePerProblem: 10     // More time to observe the rendering
-        });
+   
+     
         
         return levels;
     }
