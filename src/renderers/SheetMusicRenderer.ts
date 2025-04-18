@@ -10,7 +10,7 @@ export class SheetMusicRenderer {
     private staffY: number = 150;
     private trebleClefImg: HTMLImageElement;
     private bassClefImg: HTMLImageElement;
-    private imagesLoaded: boolean = false;
+    public imagesLoaded: boolean = false;
     
     constructor(containerId: string) {
         const container = document.getElementById(containerId);
@@ -219,5 +219,12 @@ export class SheetMusicRenderer {
             }
             this.ctx.fillText(accidentalSign, xPos - 35, yPos + 7);
         }
+    }
+    
+    /**
+     * Returns whether the clef images have been loaded
+     */
+    public areImagesLoaded(): boolean {
+        return this.imagesLoaded;
     }
 } 
