@@ -80,9 +80,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (keyboard) {
             keyboard.toggleNoteNames();
             
-            // Update button text
+            // Get updated state
             const showingNames = keyboard['showNoteNames'];
+            
+            // Update button text
             toggleNamesButton.textContent = showingNames ? 'Hide Note Names' : 'Show Note Names';
+            
+            // Save preference to profile
+            game.updateDisplayPreferences({ showNoteNames: showingNames });
             
             // Re-render keyboard if game is running
             if (game.isGameRunning()) {
@@ -102,9 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (keyboard) {
             keyboard.toggleShowAllKeys();
             
-            // Update button text
+            // Get updated state
             const showingAll = keyboard['showAllKeys'];
+            
+            // Update button text
             toggleAllKeysButton.textContent = showingAll ? 'Hide Unavailable Notes' : 'Show All Notes';
+            
+            // Save preference to profile
+            game.updateDisplayPreferences({ showAllNotes: showingAll });
             
             // Re-render keyboard if game is running
             if (game.isGameRunning()) {
@@ -381,5 +391,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLearnedNotes();
         updateLevelsInfo();
         updateLevelSelection();
+        updateToggleButtonsText();
+    }
+    
+    /**
+     * Update the toggle buttons text based on current display preferences
+     */
+    function updateToggleButtonsText() {
+        const preferences = game.getDisplayPreferences();
+        
+        if (toggleNamesButton) {
+            toggleNamesButton.textContent = preferences.showNoteNames ? 'Hide Note Names' : 'Show Note Names';
+        }
+        
+        if (toggleAllKeysButton) {
+            toggleAllKeysButton.textContent = preferences.showAllNotes ? 'Hide Unavailable Notes' : 'Show All Notes';
+        }
     }
 }); 

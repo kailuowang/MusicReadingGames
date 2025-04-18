@@ -6,6 +6,10 @@ export interface Profile {
     gameState: GameState;
     createdAt: number; // Timestamp when created
     lastUsed: number;  // Timestamp when last used
+    displayPreferences: {
+        showNoteNames: boolean;
+        showAllNotes: boolean;
+    };
 }
 
 export interface ProfilesState {

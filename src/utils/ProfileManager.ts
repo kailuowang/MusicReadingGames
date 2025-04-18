@@ -55,6 +55,14 @@ export class ProfileManager {
             if (typeof profile.createdAt !== 'number' || typeof profile.lastUsed !== 'number') {
                 return false;
             }
+            
+            // Initialize displayPreferences if missing for backward compatibility
+            if (!profile.displayPreferences) {
+                profile.displayPreferences = {
+                    showNoteNames: true,
+                    showAllNotes: false
+                };
+            }
         }
         
         return true;
@@ -90,7 +98,11 @@ export class ProfileManager {
                 recentAttempts: []
             },
             createdAt: timestamp,
-            lastUsed: timestamp
+            lastUsed: timestamp,
+            displayPreferences: {
+                showNoteNames: true,
+                showAllNotes: false
+            }
         };
         
         // Add to profiles array
@@ -200,5 +212,78 @@ export class ProfileManager {
         };
         
         this.saveProfilesState();
+    }
+    
+    /**
+     * Updates the display preferences for the active profile
+     */
+    public updateActiveProfileDisplayPreferences(preferences: { showNoteNames: boolean; showAllNotes: boolean }): boolean {
+        const activeProfile = this.getActiveProfile();
+        
+        if (!activeProfile) {
+            return false;
+        }
+        
+        // Ensure displayPreferences exists
+        if (!activeProfile.displayPreferences) {
+            activeProfile.displayPreferences = {
+                showNoteNames: true,
+                showAllNotes: false
+            };
+        }
+        
+        // Update preferences
+        activeProfile.displayPreferences = {
+            ...activeProfile.displayPreferences,
+            ...preferences
+        };
+        
+        activeProfile.lastUsed = Date.now();
+        this.saveProfilesState();
+        return true;
+    }
+    
+    /**
+     * Gets the display preferences for the active profile
+     */
+    public getActiveProfileDisplayPreferences(): { showNoteNames: boolean; showAllNotes: boolean } | null {
+        const activeProfile = this.getActiveProfile();
+        
+        if (!activeProfile) {
+            return null;
+        }
+        
+        // Ensure displayPreferences exists
+        if (!activeProfile.displayPreferences) {
+            activeProfile.displayPreferences = {
+                showNoteNames: true,
+                showAllNotes: false
+            };
+            this.saveProfilesState();
+        }
+        
+        return activeProfile.displayPreferences;
+    }
+    
+    private isValidGameState(state: any): boolean {
+        // Basic structure validation
+        if (!state || typeof state !== 'object') return false;
+        if (typeof state.currentLevelIndex !== 'number') return false;
+        if (typeof state.isGameRunning !== 'boolean') return false;
+        
+        // Check noteHistory and recentAttempts structure
+        if (!state.noteHistory || typeof state.noteHistory !== 'object') return false;
+        
+        // Initialize recentAttempts if missing
+        if (!state.recentAttempts) {
+            state.recentAttempts = [];
+        }
+        
+        // If recentAttempts exists, ensure it's an array
+        if (!Array.isArray(state.recentAttempts)) {
+            state.recentAttempts = [];
+        }
+        
+        return true;
     }
 } 

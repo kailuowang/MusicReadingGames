@@ -115,6 +115,9 @@ export class Game {
         if (activeProfile) {
             console.log('Loaded profile:', activeProfile.name);
             this.state = activeProfile.gameState;
+            
+            // Apply saved display preferences
+            this.applyDisplayPreferences();
         } else {
             // Create default profile if none exists
             this.createDefaultProfile();
@@ -197,6 +200,9 @@ export class Game {
             if (profile) {
                 // Load the profile's game state
                 this.state = profile.gameState;
+                
+                // Apply saved display preferences
+                this.applyDisplayPreferences();
                 
                 // If game is running, load the level
                 if (this.state.isGameRunning) {
@@ -649,5 +655,52 @@ export class Game {
                 }
             }, 500);
         }
+    }
+    
+    /**
+     * Apply the display preferences from the active profile to the renderers
+     */
+    private applyDisplayPreferences(): void {
+        const preferences = this.profileManager.getActiveProfileDisplayPreferences();
+        if (preferences && this.keyboardRenderer) {
+            // Set the keyboard renderer properties from saved preferences
+            if (typeof preferences.showNoteNames === 'boolean') {
+                this.keyboardRenderer['showNoteNames'] = preferences.showNoteNames;
+            }
+            
+            if (typeof preferences.showAllNotes === 'boolean') {
+                this.keyboardRenderer['showAllKeys'] = preferences.showAllNotes;
+            }
+        }
+    }
+    
+    /**
+     * Updates the display preferences in the active profile
+     */
+    public updateDisplayPreferences(preferences: { showNoteNames?: boolean; showAllNotes?: boolean }): void {
+        // Get current preferences
+        const currentPreferences = this.profileManager.getActiveProfileDisplayPreferences() || {
+            showNoteNames: true,
+            showAllNotes: false
+        };
+        
+        // Update only the provided preferences
+        const updatedPreferences = {
+            showNoteNames: preferences.showNoteNames !== undefined ? preferences.showNoteNames : currentPreferences.showNoteNames,
+            showAllNotes: preferences.showAllNotes !== undefined ? preferences.showAllNotes : currentPreferences.showAllNotes
+        };
+        
+        // Save to active profile
+        this.profileManager.updateActiveProfileDisplayPreferences(updatedPreferences);
+    }
+    
+    /**
+     * Gets the current display preferences from the active profile
+     */
+    public getDisplayPreferences(): { showNoteNames: boolean; showAllNotes: boolean } {
+        return this.profileManager.getActiveProfileDisplayPreferences() || {
+            showNoteNames: true,
+            showAllNotes: false
+        };
     }
 } 
