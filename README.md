@@ -34,6 +34,22 @@ npm start
 
 The game will be available at http://localhost:9000
 
+### Testing
+
+The project uses Jest for testing. To run all tests:
+
+```
+npm test
+```
+
+To run a specific test file:
+
+```
+npm test -- path/to/test-file.test.ts
+```
+
+The test suite includes unit tests for game components, note handling, storage, and rendering.
+
 ### Build
 
 To build the production version:
