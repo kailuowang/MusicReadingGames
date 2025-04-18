@@ -47,8 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Initialize UI state
+    // Initialize UI state immediately - this will hide the Start button 
+    // if the game was automatically started from the saved state
     updateGameRunningUI();
+    
+    // Listen for game state changes
+    document.addEventListener('gameStateChanged', (event: Event) => {
+        // Update UI based on the new game state
+        updateGameRunningUI();
+    });
     
     startButton.addEventListener('click', () => {
         console.log('Start button clicked');

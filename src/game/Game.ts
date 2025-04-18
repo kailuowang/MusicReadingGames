@@ -118,6 +118,16 @@ export class Game {
             
             // Apply saved display preferences
             this.applyDisplayPreferences();
+            
+            // If there was a game in progress, automatically start it
+            if (this.state.isGameRunning) {
+                // Load the level immediately
+                this.loadLevel(this.state.currentLevelIndex);
+                console.log('Automatically resuming game at level', this.state.currentLevelIndex + 1);
+                
+                // Notify the UI that the game is running
+                document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: true } }));
+            }
         } else {
             // Create default profile if none exists
             this.createDefaultProfile();
@@ -207,11 +217,17 @@ export class Game {
                 // If game is running, load the level
                 if (this.state.isGameRunning) {
                     this.loadLevel(this.state.currentLevelIndex);
+                    
+                    // Notify the UI that the game is running
+                    document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: true } }));
                 } else {
                     // Just clear the display
                     this.clearFeedback();
                     this.clearNoteOptions();
                     this.sheetRenderer.clear();
+                    
+                    // Notify the UI that the game is not running
+                    document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: false } }));
                 }
                 
                 this.updateStats();
@@ -246,6 +262,9 @@ export class Game {
             console.log('Game started!');
             this.updateLevelRequirements();
             this.saveState();
+            
+            // Dispatch a custom event to notify the UI that the game has started
+            document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: true } }));
         }
     }
     
@@ -311,6 +330,9 @@ export class Game {
         this.clearFeedback();
         this.clearNoteOptions();
         this.sheetRenderer.clear();
+        
+        // Notify the UI that the game is not running
+        document.dispatchEvent(new CustomEvent('gameStateChanged', { detail: { isRunning: false } }));
         
         console.log('Game reset complete.');
     }
