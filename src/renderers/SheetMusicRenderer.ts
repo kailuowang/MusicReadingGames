@@ -117,15 +117,19 @@ export class SheetMusicRenderer {
     
     public renderNote(note: Note): void {
         this.clear();
+        
+        // Draw the staff FIRST
         this.drawStaff();
         
-        // Draw clef
+        // Draw clef SECOND
         this.drawClef(note.clef);
         
-        // Draw the note
-        this.drawNote(note);
+        // Then, draw ledger lines BEFORE the note
+        // This ensures they won't be obscured by other elements
+        this.drawLedgerLinesForNote(note);
         
-        console.log(`Rendering ${note.name}${note.octave || ''} note on ${note.clef} clef`);
+        // Finally, draw the note on top
+        this.drawNote(note);
     }
     
     public clear(): void {
@@ -148,7 +152,6 @@ export class SheetMusicRenderer {
     
     private drawClef(clef: 'treble' | 'bass'): void {
         if (!this.imagesLoaded) {
-            console.log('Clef images not yet loaded');
             return;
         }
         
@@ -164,45 +167,69 @@ export class SheetMusicRenderer {
     private drawNote(note: Note): void {
         // Calculate Y position based on note position and whether it's on a line or space
         let yPos;
-        if (note.clef === 'treble') {
-            // For treble clef
-            if (note.isSpace) {
-                // Spaces (F, A, C, E)
-                yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
-            } else {
-                // Lines (E, G, B, D, F)
-                yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+        
+        // Handle notes with positions outside the standard staff (ledger lines)
+        if (note.position <= 0 || note.position > 5) {
+            if (note.clef === 'treble') {
+                if (note.isSpace) {
+                    // Spaces below or above staff on treble clef
+                    yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                } else {
+                    // Lines below or above staff on treble clef
+                    yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                }
+            } else { // bass clef
+                if (note.isSpace) {
+                    // Spaces below or above staff on bass clef
+                    yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                } else {
+                    // Lines below or above staff on bass clef
+                    yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                }
             }
         } else {
-            // For bass clef
-            if (note.isSpace) {
-                // Spaces (A, C, E, G)
-                yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+            // Original code for notes within the staff
+            if (note.clef === 'treble') {
+                // For treble clef
+                if (note.isSpace) {
+                    // Spaces (F, A, C, E)
+                    yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                } else {
+                    // Lines (E, G, B, D, F)
+                    yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                }
             } else {
-                // Lines (G, B, D, F, A)
-                yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                // For bass clef
+                if (note.isSpace) {
+                    // Spaces (A, C, E, G)
+                    yPos = this.staffY + (2 - note.position) * this.lineSpacing * 2 + this.lineSpacing;
+                } else {
+                    // Lines (G, B, D, F, A)
+                    yPos = this.staffY + (2 - note.position + 1) * this.lineSpacing * 2;
+                }
             }
         }
         
         // X position for the note (centered on the staff)
         const xPos = this.width / 2;
         
-        // Draw note head (circle) - made perfectly round and 15% bigger
+        // Draw note head (circle) - made perfectly round and 15% bigger than original size
+        // Original: 11.5, +10% = 12.65, +5% more = 13.28
         this.ctx.fillStyle = 'black';
         this.ctx.beginPath();
-        this.ctx.ellipse(xPos, yPos, 11.5, 11.5, 0, 0, 2 * Math.PI);
+        this.ctx.ellipse(xPos, yPos, 13.28, 13.28, 0, 0, 2 * Math.PI); // 12.65 * 1.05 = 13.28
         this.ctx.fill();
         
-        // Draw stem - thicker and longer
+        // Draw stem - thicker and longer, and position adjusted for the larger note head
         this.ctx.lineWidth = 2;
         this.ctx.beginPath();
-        this.ctx.moveTo(xPos + 11, yPos);
-        this.ctx.lineTo(xPos + 11, yPos - 50);
+        this.ctx.moveTo(xPos + 13.28, yPos); // Starting from the edge of the note head
+        this.ctx.lineTo(xPos + 13.28, yPos - 50);
         this.ctx.stroke();
         
         // Draw accidental if needed
         if (note.accidental) {
-            // Draw accidental sign (simplified)
+            // Draw accidental sign (simplified) - positioned further from the note
             this.ctx.fillStyle = 'black';
             this.ctx.font = '28px Arial';
             let accidentalSign = '';
@@ -217,8 +244,75 @@ export class SheetMusicRenderer {
                     accidentalSign = '♮';
                     break;
             }
-            this.ctx.fillText(accidentalSign, xPos - 35, yPos + 7);
+            this.ctx.fillText(accidentalSign, xPos - 39, yPos + 7); // Moved further left to accommodate larger note
         }
+    }
+    
+    /**
+     * Draws ledger lines for notes that extend beyond the standard staff
+     */
+    public drawLedgerLines(xPos: number, staffY: number, clef: 'treble' | 'bass', position: number, isSpace: boolean): void {
+        this.ctx.save(); // Save the current context state
+        
+        // For notes below the staff
+        if (position <= 0) {
+            // Calculate ledger line position
+            const y = staffY + (2 + 1) * this.lineSpacing * 2;
+            
+            // Draw a highlight rectangle first to make the ledger line more visible
+            this.ctx.fillStyle = '#ffffdd'; // Light yellow background
+            this.ctx.fillRect(xPos - 35, y - 2, 70, 4); // Background rectangle
+            
+            // Draw the actual ledger line
+            this.ctx.strokeStyle = '#000000'; // Pure black
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.moveTo(xPos - 30, y);
+            this.ctx.lineTo(xPos + 30, y);
+            this.ctx.stroke();
+            
+            console.log(`Drawing ledger line BELOW staff at y=${y}`);
+        }
+        // For notes above the staff
+        else if (position > 5) {
+            // Calculate Y positions for ledger lines
+            const firstLedgerLineY = staffY - (2 * this.lineSpacing);
+            const secondLedgerLineY = staffY - (4 * this.lineSpacing);
+            
+            // Draw first ledger line (for all notes position > 5)
+            // Draw a highlight rectangle first
+            this.ctx.fillStyle = '#ffffdd'; // Light yellow background
+            this.ctx.fillRect(xPos - 35, firstLedgerLineY - 2, 70, 4); // Background rectangle
+            
+            // Draw the actual ledger line
+            this.ctx.strokeStyle = '#000000'; // Pure black
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.moveTo(xPos - 30, firstLedgerLineY);
+            this.ctx.lineTo(xPos + 30, firstLedgerLineY);
+            this.ctx.stroke();
+            
+            console.log(`Drawing first ledger line at y=${firstLedgerLineY}`);
+            
+            // Draw second ledger line for position 7+ (C6)
+            if (position >= 7) {
+                // Draw a highlight rectangle first
+                this.ctx.fillStyle = '#ffffdd'; // Light yellow background
+                this.ctx.fillRect(xPos - 35, secondLedgerLineY - 2, 70, 4); // Background rectangle
+                
+                // Draw the actual ledger line
+                this.ctx.strokeStyle = '#000000'; // Pure black
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.moveTo(xPos - 30, secondLedgerLineY);
+                this.ctx.lineTo(xPos + 30, secondLedgerLineY);
+                this.ctx.stroke();
+                
+                console.log(`Drawing second ledger line at y=${secondLedgerLineY}`);
+            }
+        }
+        
+        this.ctx.restore(); // Restore the original context state
     }
     
     /**
@@ -226,5 +320,54 @@ export class SheetMusicRenderer {
      */
     public areImagesLoaded(): boolean {
         return this.imagesLoaded;
+    }
+    
+    // New method to draw ledger lines specifically for a note
+    private drawLedgerLinesForNote(note: Note): void {
+        const xPos = this.width / 2; // Same x position as the note
+        
+        // Make ledger lines match the staff lines but 20% wider
+        this.ctx.strokeStyle = 'black';
+        this.ctx.lineWidth = 2; // Same as staff lines
+        
+        // Calculate ledger line width (20% wider than original)
+        const ledgerLineExtension = 18; // Original was 15px, 15 * 1.2 = 18px
+        
+        // For notes below the staff
+        if (note.position <= 0) {
+            // Draw a ledger line below the staff for position 0 (D4/middle C)
+            const y = this.staffY + (2 + 1) * this.lineSpacing * 2; // First ledger line below staff
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(xPos - ledgerLineExtension, y); // Wider extension
+            this.ctx.lineTo(xPos + ledgerLineExtension, y); // Wider extension
+            this.ctx.stroke();
+        }
+        // For notes above the staff
+        else if (note.position > 5) {
+            // Calculate correct Y positions for ledger lines
+            const topStaffLineY = this.staffY - 2*this.lineSpacing*2; // Y of the top (5th) staff line
+            
+            // First ledger line - one space above the top staff line
+            const firstLedgerY = topStaffLineY - 2*this.lineSpacing;
+            
+            // Second ledger line - two spaces above the first ledger line
+            const secondLedgerY = firstLedgerY - 2*this.lineSpacing;
+            
+            // Draw first ledger line for A5/B5 (position 6)
+            this.ctx.beginPath();
+            this.ctx.moveTo(xPos - ledgerLineExtension, firstLedgerY); // Wider extension
+            this.ctx.lineTo(xPos + ledgerLineExtension, firstLedgerY); // Wider extension
+            this.ctx.stroke();
+            
+            // If we need the second ledger line (for position >= 7, like C6)
+            if (note.position >= 7) {
+                // Draw second ledger line
+                this.ctx.beginPath();
+                this.ctx.moveTo(xPos - ledgerLineExtension, secondLedgerY); // Wider extension
+                this.ctx.lineTo(xPos + ledgerLineExtension, secondLedgerY); // Wider extension
+                this.ctx.stroke();
+            }
+        }
     }
 } 

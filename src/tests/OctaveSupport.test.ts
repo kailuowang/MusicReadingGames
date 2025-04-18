@@ -182,10 +182,10 @@ describe('Octave Support', () => {
             const trebleNotes = allNotes.filter(note => note.clef === 'treble');
             const bassNotes = allNotes.filter(note => note.clef === 'bass');
             
-            // Treble clef notes should be in octaves 4-5
+            // Treble clef notes should be in octaves 4-6
             trebleNotes.forEach(note => {
                 expect(note.octave).toBeGreaterThanOrEqual(4);
-                expect(note.octave).toBeLessThanOrEqual(5);
+                expect(note.octave).toBeLessThanOrEqual(6);
             });
             
             // Bass clef notes should be in octaves 2-3

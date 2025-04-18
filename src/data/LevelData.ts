@@ -14,7 +14,16 @@ const trebleClefNotes: Note[] = [
     { name: 'G', position: 2, isSpace: false, clef: 'treble', octave: 4 },
     { name: 'B', position: 3, isSpace: false, clef: 'treble', octave: 4 },
     { name: 'D', position: 4, isSpace: false, clef: 'treble', octave: 5 },
-    { name: 'F', position: 5, isSpace: false, clef: 'treble', octave: 5 }
+    { name: 'F', position: 5, isSpace: false, clef: 'treble', octave: 5 },
+    
+    // Ledger line notes below the staff
+    { name: 'D', position: 0, isSpace: true, clef: 'treble', octave: 4 },
+    
+    // Ledger line notes above the staff
+    { name: 'G', position: 5, isSpace: true, clef: 'treble', octave: 5 },  // Space above top line F
+    { name: 'A', position: 6, isSpace: false, clef: 'treble', octave: 5 }, // First ledger line above staff
+    { name: 'B', position: 6, isSpace: true, clef: 'treble', octave: 5 },  // Space above first ledger line
+    { name: 'C', position: 7, isSpace: false, clef: 'treble', octave: 6 }  // Second ledger line above staff
 ];
 
 // Define the notes for the bass clef
@@ -40,19 +49,25 @@ const trebleClefSpaceNotes = trebleClefNotes.filter(note => note.isSpace && note
 // Starting with Treble Clef lines (E, G, B, D, F), then bass clef notes
 const noteProgressionOrder: Note[] = [
     // First the treble clef lines (EGBDF)
-    ...trebleClefNotes.filter(note => !note.isSpace),
+    ...trebleClefNotes.filter(note => !note.isSpace && note.position > 0 && note.position <= 5),
+    
+    // Then the ledger line note below treble clef
+    ...trebleClefNotes.filter(note => note.position === 0),
     
     // Then bass clef spaces (ACEG)
     ...bassClefNotes.filter(note => note.isSpace),
     
     // Then bass clef lines (GBDFA)
-    ...bassClefNotes.filter(note => !note.isSpace)
+    ...bassClefNotes.filter(note => !note.isSpace),
+    
+    // Finally, ledger line notes above the treble clef
+    ...trebleClefNotes.filter(note => note.position > 5)
 ];
 
 // Standard level progression criteria for all levels
 const standardLevelCriteria = {
-    requiredSuccessCount: 10,    // 10 correct in a row to level up
-    maxTimePerProblem: 5        // 5 seconds per problem maximum
+    requiredSuccessCount: 12,    // 10 correct in a row to level up
+    maxTimePerProblem: 3        // 5 seconds per problem maximum
 };
 
 export class LevelData {
@@ -104,7 +119,7 @@ export class LevelData {
             learnedNotes = [...learnedNotes, newNote];
         }
         
-        // Add a mastery level with all notes
+        // Add a master level with all notes
         levels.push({
             id: noteProgressionOrder.length + 2, // +2 because we already have level 1
             name: 'Master Level',
@@ -114,6 +129,22 @@ export class LevelData {
             ...standardLevelCriteria,
             requiredSuccessCount: 15,  // Make master level slightly more challenging
             maxTimePerProblem: 4
+        });
+        
+        // Add a special test level for ledger line notes
+        const ledgerLineTrebleNotes = trebleClefNotes.filter(note => 
+            (note.position <= 0) || (note.position > 5));
+        
+        // Special level for testing ledger line rendering
+        levels.push({
+            id: noteProgressionOrder.length + 3,
+            name: 'Ledger Line Test',
+            description: 'Special level for testing ledger line notes rendering',
+            clef: 'treble',
+            notes: ledgerLineTrebleNotes,
+            ...standardLevelCriteria,
+            requiredSuccessCount: 5,  // Make it easier for testing
+            maxTimePerProblem: 10     // More time to observe the rendering
         });
         
         return levels;
