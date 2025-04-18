@@ -446,8 +446,7 @@ button:hover {
 .cartoon-character-popup .character-avatar img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    object-fit: contain;
     border: 2px solid #3498db;
 }
 
