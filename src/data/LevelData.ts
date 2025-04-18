@@ -110,15 +110,10 @@ export class LevelData {
         for (let i = 0; i < noteProgressionOrder.length; i++) {
             const newNote = noteProgressionOrder[i];
             
-            // Determine if we're switching clefs
-            const prevClef = i > 0 ? noteProgressionOrder[i-1].clef : 'treble';
-            const clefChange = prevClef !== newNote.clef;
             
             levels.push({
                 id: i + 2, // +2 because we already have level 1
-                name: clefChange 
-                    ? `Introduction to ${newNote.clef.charAt(0).toUpperCase() + newNote.clef.slice(1)} Clef: ${newNote.name}`
-                    : `Learning ${newNote.name}`,
+                name: `Learning ${newNote.name}${newNote.octave}`,
                 description: `Learn the note ${newNote.name} on the ${newNote.clef} clef`,
                 clef: newNote.clef,
                 notes: [...learnedNotes, newNote],
@@ -146,7 +141,7 @@ export class LevelData {
             requiredSuccessCount: 5,  // Make it easier for testing
             maxTimePerProblem: 10     // More time to observe the rendering
         });
-        
+
         // Add a master level with all notes
         levels.push({
             id: noteProgressionOrder.length + 2, // +2 because we already have level 1
@@ -158,10 +153,8 @@ export class LevelData {
             requiredSuccessCount: 15,  // Make master level slightly more challenging
             maxTimePerProblem: 4
         });
-        
-   
-     
-        
+         
+             
         return levels;
     }
     
