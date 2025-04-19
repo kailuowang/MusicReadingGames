@@ -70,8 +70,8 @@ describe('LevelData Notes Coverage', () => {
     // We'll collect all notes added in each progression level by looking at the newNote property
     const progressionNotes: Note[] = [];
     
-    // Get all newNotes from the progression levels (from level 2 to the level before the special test levels)
-    for (let i = 1; i < levels.length - 2; i++) {
+    // Get all newNotes from all progression levels (from level 2 onwards)
+    for (let i = 1; i < levels.length; i++) {
       const level = levels[i];
       if (level.newNote) {
         progressionNotes.push(level.newNote);
