@@ -175,6 +175,57 @@ export class AudioPlayer {
     }
     
     /**
+     * Play a triumphant sound for level up achievements
+     */
+    public playSuccessSound(): void {
+        if (this.isTestEnvironment) return;
+        
+        if (!this.audioContext) {
+            this.initialize();
+        }
+        
+        if (!this.audioContext) return;
+        
+        // If context is suspended, try to resume it
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        
+        try {
+            // Play a short triumph melody
+            this.playSuccessNote(261.63, 0, 0.15); // C4
+            this.playSuccessNote(329.63, 0.15, 0.15); // E4
+            this.playSuccessNote(392.00, 0.3, 0.15); // G4
+            this.playSuccessNote(523.25, 0.45, 0.3); // C5 (hold longer)
+        } catch (error) {
+            console.error('Error playing success sound:', error);
+        }
+    }
+    
+    /**
+     * Helper method to play a single note in the success sequence
+     */
+    private playSuccessNote(frequency: number, startDelay: number, duration: number): void {
+        if (!this.audioContext) return;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.type = 'triangle'; // More musical tone for success sound
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime + startDelay);
+        
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime + startDelay);
+        gainNode.gain.linearRampToValueAtTime(0.7, this.audioContext.currentTime + startDelay + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + startDelay + duration);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.start(this.audioContext.currentTime + startDelay);
+        oscillator.stop(this.audioContext.currentTime + startDelay + duration);
+    }
+    
+    /**
      * Get frequency for a note
      * Uses A4 = 440Hz as reference
      */

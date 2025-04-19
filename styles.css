@@ -434,6 +434,166 @@ h1 {
     animation: confetti-fall 2.5s ease-out forwards;
 }
 
+/* Level-up confetti - larger and more prominent */
+.level-up-confetti {
+    width: 15px !important;
+    height: 30px !important;
+    animation-duration: 3.5s !important;
+    z-index: 1000;
+}
+
+/* Special confetti shapes for level up */
+.special-confetti {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: -40px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 51 48"><path fill="%23FFD700" d="M25.5 0l6.5 17h18l-14 11 5 17-15.5-10-15.5 10 5-17-14-11h18z"/></svg>');
+    background-size: contain;
+    opacity: 0;
+    z-index: 1000;
+    animation: special-confetti-fall 3s ease-out forwards;
+}
+
+@keyframes special-confetti-fall {
+    0% {
+        transform: translateY(-50px) rotate(0deg) scale(0.5);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg) scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Level up overlay */
+.level-up-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fade-in 0.5s ease-out forwards;
+}
+
+.level-up-overlay.fade-out {
+    animation: fade-out 0.5s ease-in forwards;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.level-up-container {
+    background: linear-gradient(135deg, #3498db, #9b59b6);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(52, 152, 219, 0.7);
+    max-width: 90%;
+    animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes pop-in {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    80% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.level-up-message {
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.level-up-message h1 {
+    font-size: 60px;
+    margin-bottom: 20px;
+    color: #fff;
+    animation: pulse 1.5s infinite;
+}
+
+.level-up-message h2 {
+    font-size: 40px;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.level-up-message h3 {
+    font-size: 30px;
+    color: #f1c40f;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        transform: scale(1.05);
+        text-shadow: 0 5px 15px rgba(255, 255, 255, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Star decoration for level up */
+.level-up-stars {
+    position: absolute;
+    width: 100%;
+    height: 40px;
+    top: 10px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.level-up-star {
+    width: 40px;
+    height: 40px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 51 48"><path fill="%23FFD700" d="M25.5 0l6.5 17h18l-14 11 5 17-15.5-10-15.5 10 5-17-14-11h18z"/></svg>');
+    background-size: contain;
+    animation: star-spin 2s infinite linear;
+}
+
+@keyframes star-spin {
+    from {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    to {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
 .star {
     position: absolute;
     width: 30px;

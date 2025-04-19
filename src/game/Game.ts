@@ -512,12 +512,122 @@ export class Game {
             const nextLevel = LevelData.levels[this.state.currentLevelIndex];
             this.showFeedback(true, `Level Up! Moving to level ${this.state.currentLevelIndex + 1}: ${nextLevel.name}`);
             
+            // Only show celebration in browser environment
+            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+                this.showLevelUpCelebration(this.state.currentLevelIndex, nextLevel.name);
+            }
+            
             setTimeout(() => {
                 this.loadLevel(this.state.currentLevelIndex);
-            }, 2000);
+            }, typeof window !== 'undefined' && typeof document !== 'undefined' ? 3500 : 2000); // Use longer delay only in browser
         } else {
             this.showFeedback(true, "Congratulations! You've completed all levels!");
+            
+            // Only show celebration in browser environment
+            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+                this.showLevelUpCelebration(this.state.currentLevelIndex, "Game Complete!", true);
+            }
+            
             this.state.isGameRunning = false;
+        }
+    }
+    
+    /**
+     * Displays a prominent level up celebration animation
+     */
+    private showLevelUpCelebration(levelIndex: number, levelName: string, isGameComplete: boolean = false): void {
+        // Skip visual effects in test environments
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            return;
+        }
+        
+        try {
+            // Play level up sound
+            if (this.audioPlayer) {
+                this.audioPlayer.playSuccessSound();
+            }
+            
+            // Create level up overlay container
+            const overlay = document.createElement('div');
+            overlay.className = 'level-up-overlay';
+            
+            // Create content container
+            const container = document.createElement('div');
+            container.className = 'level-up-container';
+            
+            // Create level up message
+            const message = document.createElement('div');
+            message.className = 'level-up-message';
+            message.innerHTML = isGameComplete ? 
+                '<h1>CONGRATULATIONS!</h1><h2>You completed all levels!</h2>' : 
+                `<h1>LEVEL UP!</h1><h2>Level ${levelIndex + 1}</h2><h3>${levelName}</h3>`;
+            
+            // Add star decoration
+            const stars = document.createElement('div');
+            stars.className = 'level-up-stars';
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('div');
+                star.className = 'level-up-star';
+                star.style.animationDelay = `${0.1 * i}s`;
+                stars.appendChild(star);
+            }
+            
+            // Add elements to DOM
+            container.appendChild(stars);
+            container.appendChild(message);
+            overlay.appendChild(container);
+            document.body.appendChild(overlay);
+            
+            // Create confetti explosion (more intense than regular celebration)
+            const celebrationContainer = document.querySelector('.celebration-container');
+            if (celebrationContainer) {
+                celebrationContainer.innerHTML = '';
+                
+                // Create many more confetti pieces for level up
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti-piece level-up-confetti';
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.width = `${5 + Math.random() * 15}px`;
+                    confetti.style.height = `${10 + Math.random() * 20}px`;
+                    confetti.style.backgroundColor = this.getRandomColor();
+                    confetti.style.animationDelay = `${Math.random() * 1}s`;
+                    confetti.style.animationDuration = `${1 + Math.random() * 3}s`;
+                    
+                    celebrationContainer.appendChild(confetti);
+                }
+                
+                // Add some larger special confetti
+                for (let i = 0; i < 20; i++) {
+                    const specialConfetti = document.createElement('div');
+                    specialConfetti.className = 'special-confetti';
+                    specialConfetti.style.left = `${Math.random() * 100}%`;
+                    specialConfetti.style.top = `${Math.random() * 30}%`;
+                    specialConfetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    specialConfetti.style.animationDelay = `${Math.random() * 0.8}s`;
+                    
+                    celebrationContainer.appendChild(specialConfetti);
+                }
+            }
+            
+            // Remove overlay after animation
+            setTimeout(() => {
+                if (document.body && document.body.contains(overlay)) {
+                    overlay.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (document.body && document.body.contains(overlay)) {
+                            document.body.removeChild(overlay);
+                        }
+                    }, 500);
+                }
+                
+                // Clear confetti
+                if (celebrationContainer) {
+                    celebrationContainer.innerHTML = '';
+                }
+            }, 3000);
+        } catch (error) {
+            console.error('Error showing level up celebration:', error);
         }
     }
     
