@@ -44,21 +44,47 @@ const noteProgressionOrder: Note[] = [
     
 ];
 
-// Standard level progression criteria for all levels
-const standardLevelCriteria = {
-    requiredSuccessCount: 12,    // 10 correct in a row to level up
-    maxTimePerProblem: 3        // 5 seconds per problem maximum
+// Function to calculate level criteria based on level number
+const calculateLevelCriteria = (levelNumber: number) => {
+    const MAX_LEVEL = 50;
+    
+    // Starting values
+    const START_SUCCESS_COUNT = 15;
+    const START_MAX_TIME = 6.0;
+    
+    // Ending values
+    const END_SUCCESS_COUNT = 35;
+    const END_MAX_TIME = 1.0;
+    
+    // Calculate progression rate
+    const normalizedLevel = Math.min(levelNumber, MAX_LEVEL) / MAX_LEVEL;
+    
+    // Calculate current values with linear progression
+    const requiredSuccessCount = Math.round(
+        START_SUCCESS_COUNT + (END_SUCCESS_COUNT - START_SUCCESS_COUNT) * normalizedLevel
+    );
+    
+    const maxTimePerProblem = 
+        START_MAX_TIME - (START_MAX_TIME - END_MAX_TIME) * normalizedLevel;
+    
+    return {
+        requiredSuccessCount,
+        maxTimePerProblem: Number(maxTimePerProblem.toFixed(1)) // Round to 1 decimal place
+    };
 };
 
 export class LevelData {
     // Standard ratio for how often the new note should appear
     public static readonly NEW_NOTE_FREQUENCY = 0.2; // 20%
     
-    // Standard level completion criteria
-    public static readonly LEVEL_CRITERIA = standardLevelCriteria;
-    
     // Expose all notes
     public static readonly allNotes: Note[] = allNotes;
+    
+    // Add the standard level criteria for backward compatibility with tests
+    public static readonly LEVEL_CRITERIA = {
+        requiredSuccessCount: 15,
+        maxTimePerProblem: 3.0
+    };
     
     // Generate levels progressively
     public static generateLevels(): LevelConfig[] {
@@ -71,7 +97,7 @@ export class LevelData {
             description: 'Learn the notes in the spaces of the treble clef (F, A, C, E)',
             clef: 'treble',
             notes: trebleClefSpaceNotes,
-            ...standardLevelCriteria
+            ...calculateLevelCriteria(1)
         });
         
         // Starting with the second level, begin introducing one new note at a time
@@ -80,17 +106,17 @@ export class LevelData {
         // Generate subsequent levels, each adding one new note
         for (let i = 0; i < noteProgressionOrder.length; i++) {
             const newNote = noteProgressionOrder[i];
-            
+            const levelNumber = i + 2; // +2 because we already have level 1
             
             levels.push({
-                id: i + 2, // +2 because we already have level 1
+                id: levelNumber,
                 name: `Learning ${NoteUtils.getNoteLabel(newNote)}`,
                 description: `Learn the note ${newNote.name} on the ${newNote.clef} clef`,
                 clef: newNote.clef,
                 notes: [...learnedNotes, newNote],
                 newNote: newNote,  // Keep track of which note is new in this level
                 learnedNotes: learnedNotes,  // Keep track of all previously learned notes
-                ...standardLevelCriteria
+                ...calculateLevelCriteria(levelNumber)
             });
             
             // Add the new note to the learned notes for next level
@@ -99,15 +125,15 @@ export class LevelData {
     
 
         // Add a master level with all notes
+        const masterLevelId = noteProgressionOrder.length + 2;
         levels.push({
-            id: noteProgressionOrder.length + 2, // +2 because we already have level 1
+            id: masterLevelId,
             name: 'Master Level',
             description: 'Practice all notes on both the treble and bass clefs',
             clef: 'treble', // Default clef, but will show both
             notes: allNotes,
-            ...standardLevelCriteria,
-            requiredSuccessCount: 15,  // Make master level slightly more challenging
-            maxTimePerProblem: 4
+            ...calculateLevelCriteria(masterLevelId),
+            maxTimePerProblem: 1.0 // Override to ensure master level is challenging
         });
          
              
