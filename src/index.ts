@@ -433,10 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const notesHtml = level.notes.map(note => {
                 // If this is the new note in this level, highlight it
-                const isNewNote = level.newNote && note.name === level.newNote.name && 
-                                 note.clef === level.newNote.clef && 
-                                 note.position === level.newNote.position &&
-                                 note.octave === level.newNote.octave;
+                const isNewNote = level.newNote && NoteUtils.getNoteId(note) === NoteUtils.getNoteId(level.newNote);
                                  
                 return `<span class="note-tag ${isNewNote ? 'new' : ''}">${NoteUtils.getNoteLabel(note)} (${note.clef})</span>`;
             }).join('');
