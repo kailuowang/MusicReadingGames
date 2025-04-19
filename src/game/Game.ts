@@ -448,6 +448,16 @@ export class Game {
             timeSpent,
             timestamp: answerTime,
         });
+        
+        // Limit the array to only keep the required number of attempts
+        const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
+        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
+        
+        // Keep just enough attempts (required + 1) to verify streak status
+        const keepCount = requiredSuccessCount + 1;
+        if (this.state.recentAttempts.length > keepCount) {
+            this.state.recentAttempts = this.state.recentAttempts.slice(-keepCount);
+        }
 
         // *** NEW: Update mistaken notes pool in Level ***
         this.currentLevel.updateMistakenNotes(currentNote, isCorrect);
@@ -613,16 +623,18 @@ export class Game {
             return 0;
         }
         
-        // Get the current level's requirement
-        const currentLevel = LevelData.levels[this.state.currentLevelIndex];
-        const requiredSuccessCount = currentLevel?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
+        // Get the current streak
+        const currentStreak = this.calculateCurrentStreak();
+        if (currentStreak === 0) {
+            return 0;
+        }
         
-        // Take only up to N most recent attempts where N = requiredSuccessCount
-        const recentAttempts = this.state.recentAttempts.slice(-requiredSuccessCount);
+        // Take only the attempts in the current streak
+        const streakAttempts = this.state.recentAttempts.slice(-currentStreak);
         
         // Calculate average speed
-        const totalTime = recentAttempts.reduce((sum: number, attempt: { timeSpent: number }) => sum + attempt.timeSpent, 0);
-        return totalTime / recentAttempts.length;
+        const totalTime = streakAttempts.reduce((sum: number, attempt: { timeSpent: number }) => sum + attempt.timeSpent, 0);
+        return totalTime / streakAttempts.length;
     }
     
     private updateStats(): void {
@@ -635,7 +647,7 @@ export class Game {
         // Update average speed (with 1 decimal place)
         const avgSpeed = this.calculateAverageSpeed();
         if (this.speedElement) {
-            this.speedElement.textContent = avgSpeed.toFixed(1);
+            this.speedElement.textContent = currentStreak > 0 ? avgSpeed.toFixed(1) : "-";
         }
         
         // Update visual feedback

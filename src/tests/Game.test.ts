@@ -585,4 +585,96 @@ describe('Game', () => {
         expect(mockAudioInstance.playErrorSound).toHaveBeenCalled();
         expect(mockAudioInstance.playNote).not.toHaveBeenCalled();
     });
+
+    test('calculateAverageSpeed should return 0 when there are no recent attempts', () => {
+        game['state'].recentAttempts = [];
+        const avgSpeed = (game as any).calculateAverageSpeed();
+        expect(avgSpeed).toBe(0);
+    });
+
+    test('calculateAverageSpeed should return 0 when current streak is 0', () => {
+        game['state'].recentAttempts = [
+            { isCorrect: false, timeSpent: 2.5, timestamp: Date.now() },
+            { isCorrect: false, timeSpent: 3.0, timestamp: Date.now() }
+        ];
+        const avgSpeed = (game as any).calculateAverageSpeed();
+        expect(avgSpeed).toBe(0);
+    });
+
+    test('calculateAverageSpeed should calculate average from only current streak attempts', () => {
+        // Setup: mixed correct/incorrect attempts ending with a streak
+        game['state'].recentAttempts = [
+            { isCorrect: true, timeSpent: 5.0, timestamp: Date.now() - 5000 },   // old correct (not part of current streak)
+            { isCorrect: false, timeSpent: 4.0, timestamp: Date.now() - 4000 },  // old incorrect (breaks streak)
+            { isCorrect: true, timeSpent: 3.0, timestamp: Date.now() - 3000 },   // current streak start
+            { isCorrect: true, timeSpent: 2.0, timestamp: Date.now() - 2000 },   // current streak
+            { isCorrect: true, timeSpent: 1.0, timestamp: Date.now() - 1000 }    // current streak
+        ];
+        
+        // Calculate expected average: (3.0 + 2.0 + 1.0) / 3 = 2.0
+        const avgSpeed = (game as any).calculateAverageSpeed();
+        expect(avgSpeed).toBe(2.0);
+    });
+
+    test('updateStats should show dash instead of 0 when streak is 0', () => {
+        // Mock calculateCurrentStreak and calculateAverageSpeed
+        jest.spyOn(game as any, 'calculateCurrentStreak').mockReturnValue(0);
+        jest.spyOn(game as any, 'calculateAverageSpeed').mockReturnValue(0);
+        
+        // Run update
+        (game as any).updateStats();
+        
+        // Speed display should show "-" instead of "0.0"
+        expect(mockSpeedElement.textContent).toBe('-');
+    });
+
+    test('updateStats should show formatted speed when streak is positive', () => {
+        // Mock calculateCurrentStreak and calculateAverageSpeed
+        jest.spyOn(game as any, 'calculateCurrentStreak').mockReturnValue(3);
+        jest.spyOn(game as any, 'calculateAverageSpeed').mockReturnValue(2.75);
+        
+        // Run update
+        (game as any).updateStats();
+        
+        // Speed display should show speed with 1 decimal place
+        expect(mockSpeedElement.textContent).toBe('2.8');
+    });
+
+    test('should limit recentAttempts array to the required success count plus one', () => {
+        // Setup
+        const requiredCount = 5; // Set a specific required count
+        const testLevelConfig = {
+            ...testLevelConfig1, 
+            requiredSuccessCount: requiredCount
+        };
+        
+        // Mock LevelData.levels to return our test config
+        jest.spyOn(LevelData, 'levels', 'get').mockReturnValue([testLevelConfig]);
+        
+        game = new Game(); // Reinitialize with our mocked data
+        game['state'].currentLevelIndex = 0;
+        
+        // Set up current level
+        MockLevel.prototype.getCurrentNote.mockReturnValue(noteF4);
+        MockLevel.prototype.getAvailableNotes.mockReturnValue([noteF4]);
+        game.start();
+        mockLevelInstance = getMockLevelInstance()!;
+        
+        // Generate many attempts (more than required count + 1)
+        const totalAttempts = requiredCount * 3;
+        for (let i = 0; i < totalAttempts; i++) {
+            // Reset mocks for each iteration
+            jest.clearAllMocks();
+            mockLevelInstance.isComplete.mockReturnValue(false);
+            
+            // Call checkAnswer directly
+            (game as any).checkAnswer(noteF4);
+            
+            // Fast-forward to execute the moveToNextNote
+            jest.advanceTimersByTime(200);
+        }
+        
+        // Check that the array is limited to requiredCount + 1
+        expect(game['state'].recentAttempts!.length).toBe(requiredCount + 1);
+    });
 }); 
