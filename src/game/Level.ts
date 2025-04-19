@@ -160,15 +160,28 @@ export class Level {
         const requiredSuccessCount = this.config.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
         const maxTimePerProblem = this.config.maxTimePerProblem || LevelData.LEVEL_CRITERIA.maxTimePerProblem;
 
-        if (recentAttempts.length < requiredSuccessCount) {
+        // Count current streak
+        let streak = 0;
+        for (let i = recentAttempts.length - 1; i >= 0; i--) {
+            if (recentAttempts[i].isCorrect) {
+                streak++;
+            } else {
+                break; // Stop counting when we hit an incorrect answer
+            }
+        }
+
+        // If streak is less than required, level is not complete
+        if (streak < requiredSuccessCount) {
             return false;
         }
 
-        const lastN = recentAttempts.slice(-requiredSuccessCount);
-        const allCorrect = lastN.every(attempt => attempt.isCorrect);
-        const averageTime = lastN.reduce((sum, attempt) => sum + attempt.timeSpent, 0) / lastN.length;
+        // Get only the attempts in the current streak
+        const streakAttempts = recentAttempts.slice(-streak);
+        
+        // Calculate average time for streak attempts
+        const averageTime = streakAttempts.reduce((sum, attempt) => sum + attempt.timeSpent, 0) / streakAttempts.length;
         const isFastEnough = averageTime < maxTimePerProblem;
 
-        return allCorrect && isFastEnough;
+        return isFastEnough;
     }
 } 
