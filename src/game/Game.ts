@@ -359,19 +359,17 @@ export class Game {
         }
         
         const levelData = levels[levelIndex];
-        this.currentLevel = new Level(levelData);
+        this.currentLevel = new Level(levelData, levelIndex);
         
-        // If the level has a new note, update the note history with an initial entry
-        if (levelData.newNote && !this.state.noteHistory[levelData.newNote.name]) {
-            this.state.noteHistory[levelData.newNote.name] = {
-                correct: 0,
-                incorrect: 0
-            };
-        }
-        
-        // Update the note pool based on history
-        if (this.currentLevel) {
-            this.currentLevel.updateNotePool(this.state.noteHistory);
+        // If the level has a new note, update the note history with an initial entry (still useful for overall stats)
+        if (levelData.newNote) { // Check if newNote exists
+            const noteId = NoteUtils.getNoteId(levelData.newNote);
+            if (!this.state.noteHistory[noteId]) { // Initialize only if not present
+                 this.state.noteHistory[noteId] = { // Use noteId as the key
+                     correct: 0,
+                     incorrect: 0
+                 };
+             }
         }
         
         this.displayCurrentNote();
@@ -408,77 +406,84 @@ export class Game {
     
     private checkAnswer(selectedNote: Note): void {
         if (!this.currentLevel) return;
-        
+
         const currentNote = this.currentLevel.getCurrentNote();
-        
-        // Check both note name and octave match
-        const nameMatches = currentNote.name === selectedNote.name;
-        const octaveMatches = currentNote.octave === selectedNote.octave;
-        
-        const isCorrect = nameMatches && octaveMatches;
-        
+        if (!currentNote) {
+            console.error("checkAnswer received null currentNote from Level.");
+            return;
+        }
+        const currentNoteId = NoteUtils.getNoteId(currentNote);
+        const isCorrect = this.currentLevel.isSameNote(currentNote, selectedNote);
+
         // Play appropriate sound based on the answer
         if (isCorrect) {
-            // Play the correct note sound
             this.audioPlayer.playNote(currentNote.name, currentNote.octave);
         } else {
-            // Play error/thud sound
             this.audioPlayer.playErrorSound();
         }
-        
-        // Update note history for adaptive difficulty
-        if (!this.state.noteHistory[currentNote.name]) {
-            this.state.noteHistory[currentNote.name] = { 
-                correct: 0, 
-                incorrect: 0 
+
+        // Update note history for general stats tracking (using noteId)
+        if (!this.state.noteHistory[currentNoteId]) {
+            this.state.noteHistory[currentNoteId] = {
+                correct: 0,
+                incorrect: 0
             };
         }
-        
+        if (isCorrect) {
+            this.state.noteHistory[currentNoteId].correct += 1;
+        } else {
+            this.state.noteHistory[currentNoteId].incorrect += 1;
+        }
+
         // Calculate actual time spent answering this question
         const answerTime = Date.now();
         const timeSpent = (answerTime - this.noteDisplayTime) / 1000; // Convert to seconds
-        
+
         // Add to recent attempts array for level completion tracking
         if (!this.state.recentAttempts) {
             this.state.recentAttempts = [];
         }
-        
         this.state.recentAttempts.push({
             isCorrect,
             timeSpent,
-            timestamp: answerTime
+            timestamp: answerTime,
         });
-        
+
+        // *** NEW: Update mistaken notes pool in Level ***
+        this.currentLevel.updateMistakenNotes(currentNote, isCorrect);
+
+        // Show feedback
         if (isCorrect) {
-            this.state.noteHistory[currentNote.name].correct += 1;
             this.showFeedback(true, `Correct! That's ${NoteUtils.getNoteLabel(currentNote)}`);
         } else {
-            this.state.noteHistory[currentNote.name].incorrect += 1;
-            
-            if (!nameMatches) {
+            // Check if it's the same note name but different octave
+            if (currentNote.name === selectedNote.name && currentNote.octave !== selectedNote.octave) {
+                this.showFeedback(false, `Incorrect. That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)} (wrong octave)`);
+            } else {
                 this.showFeedback(false, `Incorrect. That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)}`);
-            } else if (!octaveMatches) {
-                this.showFeedback(false, `Incorrect. Right note name (${currentNote.name}), but wrong octave. It was ${NoteUtils.getNoteLabel(currentNote)}, you selected ${NoteUtils.getNoteLabel(selectedNote)}`);
             }
         }
-        
+
         this.updateStats();
         this.saveState();
-        
+
         // Move to next note
         setTimeout(() => {
             this.moveToNextNote();
-        }, 100);
+        }, 150); // Slightly increased delay might feel smoother
     }
     
     private moveToNextNote(): void {
         if (!this.currentLevel) return;
         
-        // Check if current level is complete
+        // Check if current level is complete using the existing recentAttempts array
+        // The Level class still provides the isComplete logic based on its config.
         if (this.state.recentAttempts && this.currentLevel.isComplete(this.state.recentAttempts)) {
             this.levelUp();
         } else {
+            // Tell the level to select the *next* note internally
             this.currentLevel.nextNote();
+            // Display the newly selected note
             this.displayCurrentNote();
         }
     }

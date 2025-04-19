@@ -90,7 +90,12 @@ describe('Octave Support', () => {
                 getAvailableNotes: jest.fn().mockReturnValue([middleCNote, highCNote, lowCNote]),
                 nextNote: jest.fn(),
                 isComplete: jest.fn().mockReturnValue(false),
-                updateNotePool: jest.fn()
+                updateMistakenNotes: jest.fn(),
+                isSameNote: jest.fn().mockImplementation((note1, note2) => {
+                    if (!note1 || !note2) return false;
+                    // Compare both name and octave for proper octave validation
+                    return note1.name === note2.name && note1.octave === note2.octave;
+                })
             };
             
             // Set the current level

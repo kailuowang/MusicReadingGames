@@ -62,4 +62,13 @@ export class NoteUtils {
     
     return label;
   }
+
+  /**
+   * Generates a unique string identifier for a note instance.
+   * Includes name, octave, clef, and accidental.
+   * Example: "C4treble", "F#5bass"
+   */
+  public static getNoteId(note: Note): string {
+    return `${note.name}${note.octave}${note.clef}${note.accidental || ''}`;
+  }
 } 

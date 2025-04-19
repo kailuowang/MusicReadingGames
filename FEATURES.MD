@@ -13,4 +13,11 @@ The game logic should have unit test coverage
    * [x]  The user's progress should be stored in the cookie so that she can resume later
    * [x]  Audio feedback: play piano midi sound when the correct key is pressed, and play a thud sound when an incorrect key is pressed
    
+   Here is the logic on how to drawing a note to ask
+1. the app should never ask the same note twice in a row, if it draws the same note as last question it should draw again
+2. the new note in the level should be drawn at a probability of 20%
+3. the game also keeps a pool of mistaken notes, notes that users answered wrong, (there is already data about attempts stored in Game.ts, so we should use that) in if this pool isn't empty, the app should draw from it at a probabliy of 30%, notes that answered 3 times in a row can be removed from this pool
+4. After the user progress above level 6, at a probablity of 40% the app should draw from the notes that are the new note in the last 5 levels (they are recently learned notes)
+5. The app go to draw from the learned notes the rest of the probabiliy
+
 
