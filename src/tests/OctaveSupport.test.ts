@@ -99,7 +99,7 @@ describe('Octave Support', () => {
             // Case 1: Correct note with correct octave (middle C)
             (game as any).checkAnswer(middleCNote);
             expect(mockElements.mockFeedbackDiv.textContent).toContain("Correct");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C4");
+            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 4");
             expect(mockElements.mockFeedbackDiv.className).toBe('correct active');
             
             // Clear feedback for next test
@@ -110,8 +110,8 @@ describe('Octave Support', () => {
             (game as any).checkAnswer(highCNote);
             expect(mockElements.mockFeedbackDiv.textContent).toContain("Incorrect");
             expect(mockElements.mockFeedbackDiv.textContent).toContain("wrong octave");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C4");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C5");
+            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 4");
+            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 5");
             expect(mockElements.mockFeedbackDiv.className).toBe('incorrect active');
             
             // Clear feedback for next test
@@ -122,8 +122,8 @@ describe('Octave Support', () => {
             const dNote: Note = { name: 'D', position: 4, isSpace: false, clef: 'treble', octave: 4 };
             (game as any).checkAnswer(dNote);
             expect(mockElements.mockFeedbackDiv.textContent).toContain("Incorrect");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C4");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("D4");
+            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 4");
+            expect(mockElements.mockFeedbackDiv.textContent).toContain("D 4");
             expect(mockElements.mockFeedbackDiv.className).toBe('incorrect active');
         });
     });

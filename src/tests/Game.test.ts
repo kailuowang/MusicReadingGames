@@ -296,7 +296,7 @@ describe('Game', () => {
         expect(game['state'].noteHistory['F']).toEqual({ correct: 1, incorrect: 0 });
         expect(game['state'].recentAttempts!.length).toBe(1);
         expect(game['state'].recentAttempts![0].isCorrect).toBe(true);
-        expect(mockFeedbackDiv.textContent).toBe("Correct! That's F4");
+        expect(mockFeedbackDiv.textContent).toBe("Correct! That's F 4");
         expect(mockFeedbackDiv.className).toBe('correct active');
         expect(mockStorageInstance.saveState).toHaveBeenCalled();
         
@@ -338,7 +338,7 @@ describe('Game', () => {
         expect(game['state'].noteHistory['F']).toHaveProperty('incorrect');
         expect(game['state'].recentAttempts!.length).toBe(1);
         expect(game['state'].recentAttempts![0].isCorrect).toBe(false);
-        expect(mockFeedbackDiv.textContent).toBe("Incorrect. That was F4, not A4");
+        expect(mockFeedbackDiv.textContent).toBe("Incorrect. That was F 4, not A 4");
         expect(mockFeedbackDiv.className).toBe('incorrect active');
         expect(mockStorageInstance.saveState).toHaveBeenCalled();
         

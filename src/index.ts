@@ -5,6 +5,7 @@ import { LevelData } from './data/LevelData';
 import { LevelConfig } from './models/LevelConfig';
 import { Note } from './models/Note';
 import { AudioPlayer } from './utils/AudioPlayer';
+import { NoteUtils } from './utils/NoteUtils';
 
 // Initialize the game when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -385,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4>Treble Clef Notes</h4>
                 <div class="level-notes">
                     ${trebleNotes.map(note => 
-                        `<span class="note-tag">${note.name}${note.octave}</span>`
+                        `<span class="note-tag">${NoteUtils.getNoteLabel(note)}</span>`
                     ).join('')}
                 </div>
             `;
@@ -400,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4>Bass Clef Notes</h4>
                 <div class="level-notes">
                     ${bassNotes.map(note => 
-                        `<span class="note-tag">${note.name}${note.octave}</span>`
+                        `<span class="note-tag">${NoteUtils.getNoteLabel(note)}</span>`
                     ).join('')}
                 </div>
             `;
@@ -437,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                  note.position === level.newNote.position &&
                                  note.octave === level.newNote.octave;
                                  
-                return `<span class="note-tag ${isNewNote ? 'new' : ''}">${note.name}${note.octave} (${note.clef})</span>`;
+                return `<span class="note-tag ${isNewNote ? 'new' : ''}">${NoteUtils.getNoteLabel(note)} (${note.clef})</span>`;
             }).join('');
             
             levelItem.innerHTML = `

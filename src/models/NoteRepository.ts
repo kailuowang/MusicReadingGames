@@ -68,8 +68,42 @@ export class NoteRepository {
             { name: 'C', position: -1, isSpace: false, clef: 'bass', octave: 2 }  // Second ledger line below staff
         ];
         
+        // Add black keys (sharp notes) for treble clef
+        const trebleClefSharps: Note[] = [
+            // Add black keys for octave 4
+            { name: 'C', position: 0, isSpace: false, clef: 'treble', octave: 4, accidental: 'sharp' },
+            { name: 'D', position: 0, isSpace: true, clef: 'treble', octave: 4, accidental: 'sharp' },
+            { name: 'F', position: 1, isSpace: true, clef: 'treble', octave: 4, accidental: 'sharp' },
+            { name: 'G', position: 2, isSpace: false, clef: 'treble', octave: 4, accidental: 'sharp' },
+            { name: 'A', position: 2, isSpace: true, clef: 'treble', octave: 4, accidental: 'sharp' },
+            
+            // Add black keys for octave 5
+            { name: 'C', position: 3, isSpace: true, clef: 'treble', octave: 5, accidental: 'sharp' },
+            { name: 'D', position: 4, isSpace: false, clef: 'treble', octave: 5, accidental: 'sharp' },
+            { name: 'F', position: 5, isSpace: false, clef: 'treble', octave: 5, accidental: 'sharp' },
+            { name: 'G', position: 5, isSpace: true, clef: 'treble', octave: 5, accidental: 'sharp' },
+            { name: 'A', position: 6, isSpace: false, clef: 'treble', octave: 5, accidental: 'sharp' }
+        ];
+        
+        // Add black keys (sharp notes) for bass clef
+        const bassClefSharps: Note[] = [
+            // Add black keys for octave 2
+            { name: 'C', position: -1, isSpace: false, clef: 'bass', octave: 2, accidental: 'sharp' },
+            { name: 'D', position: -1, isSpace: true, clef: 'bass', octave: 2, accidental: 'sharp' },
+            { name: 'F', position: 0, isSpace: true, clef: 'bass', octave: 2, accidental: 'sharp' },
+            { name: 'G', position: 1, isSpace: false, clef: 'bass', octave: 2, accidental: 'sharp' },
+            { name: 'A', position: 1, isSpace: true, clef: 'bass', octave: 2, accidental: 'sharp' },
+            
+            // Add black keys for octave 3
+            { name: 'C', position: 2, isSpace: true, clef: 'bass', octave: 3, accidental: 'sharp' },
+            { name: 'D', position: 3, isSpace: false, clef: 'bass', octave: 3, accidental: 'sharp' },
+            { name: 'F', position: 4, isSpace: false, clef: 'bass', octave: 3, accidental: 'sharp' },
+            { name: 'G', position: 4, isSpace: true, clef: 'bass', octave: 3, accidental: 'sharp' },
+            { name: 'A', position: 5, isSpace: false, clef: 'bass', octave: 3, accidental: 'sharp' }
+        ];
+        
         // Combine all notes
-        const allNotes = [...trebleClefNotes, ...bassClefNotes];
+        const allNotes = [...trebleClefNotes, ...bassClefNotes, ...trebleClefSharps, ...bassClefSharps];
         
         // Add each note to the map for easy lookup
         allNotes.forEach(note => {
@@ -93,6 +127,16 @@ export class NoteRepository {
         return Array.from(this.notes.values()).filter(note => note.clef === clef);
     }
     
+
+    public getWhiteNotesByClef(clef: 'treble' | 'bass'): Note[] {
+        return Array.from(this.notes.values()).filter(note => note.clef === clef && !note.accidental);
+    }
+
+    public getBlackNotesByClef(clef: 'treble' | 'bass'): Note[] {
+        return Array.from(this.notes.values()).filter(note => note.clef === clef && note.accidental);
+    }  
+
+
     public getNotesInRange(startOctave: number, endOctave: number): Note[] {
         return Array.from(this.notes.values()).filter(note => 
             note.octave >= startOctave && note.octave <= endOctave

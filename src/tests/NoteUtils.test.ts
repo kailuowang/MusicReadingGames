@@ -45,4 +45,57 @@ describe('NoteUtils', () => {
       expect(NoteUtils.isAboveStaff(regularNote)).toBe(false);
     });
   });
+  
+  describe('getNoteLabel', () => {
+    it('should format natural notes correctly with space', () => {
+      const cNote: Note = {
+        name: 'C',
+        position: 0,
+        isSpace: false,
+        clef: 'treble',
+        octave: 4
+      };
+      
+      expect(NoteUtils.getNoteLabel(cNote)).toBe('C 4');
+    });
+    
+    it('should format sharp notes correctly with space', () => {
+      const dSharpNote: Note = {
+        name: 'D',
+        position: 4,
+        isSpace: false,
+        clef: 'treble',
+        octave: 5,
+        accidental: 'sharp'
+      };
+      
+      expect(NoteUtils.getNoteLabel(dSharpNote)).toBe('D# 5');
+    });
+    
+    it('should format flat notes correctly with space', () => {
+      const bFlatNote: Note = {
+        name: 'B',
+        position: 3,
+        isSpace: false,
+        clef: 'bass',
+        octave: 3,
+        accidental: 'flat'
+      };
+      
+      expect(NoteUtils.getNoteLabel(bFlatNote)).toBe('B♭ 3');
+    });
+    
+    it('should format natural accidentals correctly with space', () => {
+      const fNaturalNote: Note = {
+        name: 'F',
+        position: 4,
+        isSpace: false,
+        clef: 'treble',
+        octave: 5,
+        accidental: 'natural'
+      };
+      
+      expect(NoteUtils.getNoteLabel(fNaturalNote)).toBe('F♮ 5');
+    });
+  });
 }); 

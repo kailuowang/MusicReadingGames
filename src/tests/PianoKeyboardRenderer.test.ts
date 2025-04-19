@@ -4,6 +4,14 @@ import { NoteRepository } from '../models/NoteRepository';
 
 // Mock NoteRepository
 jest.mock('../models/NoteRepository', () => {
+    // Sample sharp notes to return
+    const mockNotes = [
+        { name: 'C', position: 1, isSpace: false, clef: 'treble', octave: 4 },
+        { name: 'C', position: 1, isSpace: false, clef: 'treble', octave: 4, accidental: 'sharp' },
+        { name: 'F', position: 3, isSpace: true, clef: 'treble', octave: 4 },
+        { name: 'F', position: 3, isSpace: true, clef: 'treble', octave: 4, accidental: 'sharp' }
+    ];
+    
     return {
         NoteRepository: {
             getInstance: jest.fn(() => ({
@@ -16,7 +24,8 @@ jest.mock('../models/NoteRepository', () => {
                         octave,
                         accidental
                     };
-                })
+                }),
+                getAllNotes: jest.fn(() => mockNotes)
             }))
         }
     };
@@ -31,6 +40,10 @@ describe('PianoKeyboardRenderer', () => {
     const noteD4: Note = { name: 'D', position: 2, isSpace: false, clef: 'treble', octave: 4 };
     const noteF4: Note = { name: 'F', position: 3, isSpace: true, clef: 'treble', octave: 4 };
     const noteC5: Note = { name: 'C', position: 1, isSpace: true, clef: 'treble', octave: 5 };
+    
+    // Sample sharp notes for testing
+    const noteCSharp4: Note = { name: 'C', position: 1, isSpace: true, clef: 'treble', octave: 4, accidental: 'sharp' };
+    const noteFSharp4: Note = { name: 'F', position: 3, isSpace: true, clef: 'treble', octave: 4, accidental: 'sharp' };
     
     const trebleNotes = [noteC4, noteD4, noteF4, noteC5];
     const bassNote: Note = { name: 'F', position: 2, isSpace: false, clef: 'bass', octave: 3 };
@@ -105,6 +118,14 @@ describe('PianoKeyboardRenderer', () => {
             renderer.renderKeyboard(trebleNotes, jest.fn());
             const octaves = container.querySelectorAll('.octave');
             expect(octaves.length).toBeGreaterThan(1);
+        });
+        
+        test('should render black keys as selectable when provided in notes array', () => {
+            renderer.renderKeyboard([noteCSharp4, noteFSharp4, noteC4], jest.fn());
+            
+            // Look for selectable black keys
+            const selectableBlackKeys = container.querySelectorAll('.black-key.selectable');
+            expect(selectableBlackKeys.length).toBeGreaterThan(0);
         });
     });
     
@@ -229,6 +250,40 @@ describe('PianoKeyboardRenderer', () => {
             
             // Test no match with different octave
             expect(findMatchingNote(testNote, [differentOctaveNote])).toBeFalsy();
+        });
+    });
+    
+    describe('Black keys rendering', () => {
+        test('should render and make black keys selectable', () => {
+            // Get black key notes from our mocked repository
+            const noteRepository = NoteRepository.getInstance();
+            const allNotes = noteRepository.getAllNotes();
+            
+            // Filter only sharp notes
+            const sharpNotes = allNotes.filter(note => note.accidental === 'sharp');
+            
+            // Ensure we have sharp notes to test
+            expect(sharpNotes.length).toBeGreaterThan(0);
+            
+            // Render the keyboard with sharp notes
+            renderer.renderKeyboard(sharpNotes, jest.fn());
+            
+            // Check that black keys are rendered and selectable
+            const selectableBlackKeys = container.querySelectorAll('.black-key.selectable');
+            expect(selectableBlackKeys.length).toBeGreaterThan(0);
+        });
+        
+        test('should handle accidentals correctly in note matching', () => {
+            // Use our sample notes for C natural and C sharp
+            const cNatural = noteC4;
+            const cSharp = noteCSharp4;
+            
+            // Render both notes
+            renderer.renderKeyboard([cNatural, cSharp], jest.fn());
+            
+            // Both should be selectable
+            const selectableKeys = container.querySelectorAll('.selectable');
+            expect(selectableKeys.length).toBeGreaterThanOrEqual(2);
         });
     });
 }); 

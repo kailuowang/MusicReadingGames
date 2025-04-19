@@ -8,8 +8,8 @@ const noteRepo = NoteRepository.getInstance();
 const allNotes = noteRepo.getAllNotes();
 
 // Extract treble and bass clef notes
-const trebleClefNotes = noteRepo.getNotesByClef('treble');
-const bassClefNotes = noteRepo.getNotesByClef('bass');
+const trebleClefNotes = noteRepo.getWhiteNotesByClef('treble');
+const bassClefNotes = noteRepo.getWhiteNotesByClef('bass');
 
 // Get treble clef space notes (F, A, C, E)
 const trebleClefSpaceNotes = trebleClefNotes.filter(note => note.isSpace && note.position > 0 && note.position < 5);
@@ -32,7 +32,10 @@ const noteProgressionOrder: Note[] = [
     // Then ledger line notes above the treble clef
     ...trebleClefNotes.filter(note => NoteUtils.isAboveStaff(note)),
 
+    ...noteRepo.getBlackNotesByClef('treble'),
     
+    ...noteRepo.getBlackNotesByClef('bass'),
+
     // Finally, bass clef ledger notes
     ...bassClefNotes.filter(note => NoteUtils.isLedgerLineNote(note)),
 ];
@@ -77,7 +80,7 @@ export class LevelData {
             
             levels.push({
                 id: i + 2, // +2 because we already have level 1
-                name: `Learning ${newNote.name}${newNote.octave}`,
+                name: `Learning ${NoteUtils.getNoteLabel(newNote)}`,
                 description: `Learn the note ${newNote.name} on the ${newNote.clef} clef`,
                 clef: newNote.clef,
                 notes: [...learnedNotes, newNote],

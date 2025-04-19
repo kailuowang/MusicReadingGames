@@ -8,6 +8,7 @@ import { PianoKeyboardRenderer } from '../renderers/PianoKeyboardRenderer';
 import { NoteRepository } from '../models/NoteRepository';
 import { ProfileManager } from '../utils/ProfileManager';
 import { AudioPlayer } from '../utils/AudioPlayer';
+import { NoteUtils } from '../utils/NoteUtils';
 
 // Cartoon characters and encouraging messages
 interface CartoonCharacter {
@@ -450,14 +451,14 @@ export class Game {
         
         if (isCorrect) {
             this.state.noteHistory[currentNote.name].correct += 1;
-            this.showFeedback(true, `Correct! That's ${currentNote.name}${currentNote.octave}`);
+            this.showFeedback(true, `Correct! That's ${NoteUtils.getNoteLabel(currentNote)}`);
         } else {
             this.state.noteHistory[currentNote.name].incorrect += 1;
             
             if (!nameMatches) {
-                this.showFeedback(false, `Incorrect. That was ${currentNote.name}${currentNote.octave}, not ${selectedNote.name}${selectedNote.octave}`);
+                this.showFeedback(false, `Incorrect. That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)}`);
             } else if (!octaveMatches) {
-                this.showFeedback(false, `Incorrect. Right note name (${currentNote.name}), but wrong octave. It was ${currentNote.name}${currentNote.octave}, you selected ${selectedNote.name}${selectedNote.octave}`);
+                this.showFeedback(false, `Incorrect. Right note name (${currentNote.name}), but wrong octave. It was ${NoteUtils.getNoteLabel(currentNote)}, you selected ${NoteUtils.getNoteLabel(selectedNote)}`);
             }
         }
         

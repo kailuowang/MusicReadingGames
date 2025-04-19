@@ -32,4 +32,34 @@ export class NoteUtils {
   public static isAboveStaff(note: Note): boolean {
     return note.position > 5;
   }
+  
+  /**
+   * Returns a formatted string representation of a note
+   * @param note The note to format
+   * @returns A string in the format "X# O" where X is the note name, 
+   * # is the accidental (if any), and O is the octave number
+   */
+  public static getNoteLabel(note: Note): string {
+    let label = note.name;
+    
+    // Add accidental symbol if present
+    if (note.accidental) {
+      switch (note.accidental) {
+        case 'sharp':
+          label += '#';
+          break;
+        case 'flat':
+          label += '♭';
+          break;
+        case 'natural':
+          label += '♮';
+          break;
+      }
+    }
+    
+    // Add octave number with space
+    label += ' ' + note.octave;
+    
+    return label;
+  }
 } 
