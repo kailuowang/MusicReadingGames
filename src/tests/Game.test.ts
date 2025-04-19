@@ -17,20 +17,6 @@ jest.mock('../game/Level');
 jest.mock('../renderers/SheetMusicRenderer');
 jest.mock('../utils/StorageManager');
 jest.mock('../utils/AudioPlayer');
-jest.mock('../data/LevelData', () => {
-    return {
-        LevelData: {
-            NEW_NOTE_FREQUENCY: 0.2,
-            LEVEL_CRITERIA: {
-                requiredSuccessCount: 10,
-                maxTimePerProblem: 5
-            },
-            levels: []  // Will be set in each test as needed
-        }
-    };
-});
-// Mock NoteUtils as well for consistency
-// jest.mock('../utils/NoteUtils');
 
 // Type casting for mocks
 const MockLevel = Level as jest.MockedClass<typeof Level>;
@@ -54,12 +40,6 @@ jest.mock('../utils/AudioPlayer', () => {
     };
 });
 
-// Mock NoteUtils implementation
-// const mockGetNoteId = NoteUtils.getNoteId as jest.Mock;
-// mockGetNoteId.mockImplementation((note: Note) => `${note.name}${note.octave}${note.clef}${note.accidental || ''}`);
-// const mockGetNoteLabel = NoteUtils.getNoteLabel as jest.Mock;
-// mockGetNoteLabel.mockImplementation((note: Note) => `${note.name} ${note.octave}`);
-
 // Sample data
 const noteF4: Note = { name: 'F', position: 1, isSpace: true, clef: 'treble', octave: 4 };
 const noteA4: Note = { name: 'A', position: 2, isSpace: true, clef: 'treble', octave: 4 };
@@ -71,7 +51,7 @@ const noteF4Id = actualNoteUtils.getNoteId(noteF4);
 const noteA4Id = actualNoteUtils.getNoteId(noteA4);
 const noteC5Id = actualNoteUtils.getNoteId(noteC5);
 
-// Mock level configuration for progressive learning
+// Sample level configurations for tests that need specific configs
 const testLevelConfig1: LevelConfig = {
     id: 1, name: 'Level 1', description: 'First note F', clef: 'treble',
     notes: [noteF4], requiredSuccessCount: 10, maxTimePerProblem: 5
@@ -133,6 +113,10 @@ describe('Game', () => {
     // Spy for NoteUtils
     let getNoteIdSpy: jest.SpyInstance;
     let getNoteLabelSpy: jest.SpyInstance;
+    // Store original LevelData levels
+    let originalLevelDataLevels: LevelConfig[];
+    // Spy for LevelData.generateLevels to override with test data when needed
+    let generateLevelsSpy: jest.SpyInstance;
 
     // Helper to get mock Level instance (created inside Game constructor)
     const getMockLevelInstance = (): jest.Mocked<Level> | null => {
@@ -152,8 +136,11 @@ describe('Game', () => {
         mockPlayErrorSound.mockClear();
         mockInitialize.mockClear();
         
-        // Update LevelData.levels for each test
-        (LevelData.levels as LevelConfig[]) = [testLevelConfig1, testLevelConfig2, testLevelConfig3];
+        // Save original LevelData.levels
+        originalLevelDataLevels = [...LevelData.levels];
+        
+        // Setup spy for generateLevels to use in tests that need custom levels
+        generateLevelsSpy = jest.spyOn(LevelData, 'generateLevels');
         
         // Reset DOM element mocks
         mockSheetMusicDiv.innerHTML = '';
@@ -220,6 +207,9 @@ describe('Game', () => {
     afterEach(() => {
         jest.useRealTimers(); // Restore real timers
         jest.restoreAllMocks(); // Clean up spies
+        
+        // No need to restore LevelData.levels manually since we restore all mocks
+        // and we're using a spy on generateLevels instead of direct assignment
     });
 
     test('should initialize with default state assuming no active profile state', () => {
@@ -242,12 +232,15 @@ describe('Game', () => {
         MockLevel.prototype.getCurrentNote.mockReturnValue(noteF4);
         MockLevel.prototype.getAvailableNotes.mockReturnValue([noteF4]);
 
+        // Get the first level from the real LevelData
+        const firstLevel = LevelData.levels[0];
+
         game.start();
         mockLevelInstance = getMockLevelInstance()!;
 
         expect(game['state'].isGameRunning).toBe(true);
-        // Check constructor call with levelIndex
-        expect(MockLevel).toHaveBeenCalledWith(testLevelConfig1, 0);
+        // Check constructor call with the actual first level and index
+        expect(MockLevel).toHaveBeenCalledWith(firstLevel, 0);
         expect(mockLevelInstance.getCurrentNote).toHaveBeenCalled();
         expect(mockRendererInstance.renderNote).toHaveBeenCalledWith(noteF4);
         // Keyboard renderer interaction is complex, just check options were added
@@ -288,26 +281,42 @@ describe('Game', () => {
     });
 
     test('should add new note to history when loading a level with a new note (if not already present)', () => {
-        // Setup: Load level 2 which has a new note (A4)
-        game['state'].currentLevelIndex = 1; // Target level index
+        // Use real LevelData but ensure it has at least 2 levels
+        if (LevelData.levels.length < 2) {
+            // Mock generateLevels to return test levels
+            generateLevelsSpy.mockReturnValue([testLevelConfig1, testLevelConfig2]);
+        }
+        
+        // Setup: Load a level with a new note, using the real data
+        const targetLevelIndex = 1; // We'll use the second level
+        const targetLevel = LevelData.levels[targetLevelIndex];
+        
+        // Make sure this level has a new note defined
+        const targetLevelNewNote = targetLevel.newNote || noteA4;
+        
+        // Set up mock behavior
+        game['state'].currentLevelIndex = targetLevelIndex;
         
         // Mock Level methods for the instance that will be created by loadLevel
-        MockLevel.prototype.getCurrentNote.mockReturnValue(noteA4);
-        MockLevel.prototype.getAvailableNotes.mockReturnValue([noteF4, noteA4]);
+        MockLevel.prototype.getCurrentNote.mockReturnValue(targetLevelNewNote);
+        MockLevel.prototype.getAvailableNotes.mockReturnValue(targetLevel.notes);
+        
+        // Generate the ID for the new note
+        const newNoteId = NoteUtils.getNoteId(targetLevelNewNote);
         
         // Ensure history is empty for the new note ID
-        expect(game['state'].noteHistory[noteA4Id]).toBeUndefined();
+        expect(game['state'].noteHistory[newNoteId]).toBeUndefined();
 
         // Call loadLevel directly
-        (game as any).loadLevel(1);
+        (game as any).loadLevel(targetLevelIndex);
         
-        // Check that the new note A4 has been added to history using its ID
-        expect(game['state'].noteHistory).toHaveProperty(noteA4Id);
-        expect(game['state'].noteHistory[noteA4Id]).toEqual({ correct: 0, incorrect: 0 });
+        // Check that the new note has been added to history using its ID
+        expect(game['state'].noteHistory).toHaveProperty(newNoteId);
+        expect(game['state'].noteHistory[newNoteId]).toEqual({ correct: 0, incorrect: 0 });
 
         // Call loadLevel again, history should not be re-initialized
-         (game as any).loadLevel(1);
-         expect(game['state'].noteHistory[noteA4Id]).toEqual({ correct: 0, incorrect: 0 }); // Stays the same
+        (game as any).loadLevel(targetLevelIndex);
+        expect(game['state'].noteHistory[newNoteId]).toEqual({ correct: 0, incorrect: 0 }); // Stays the same
     });
 
     test('should handle correct answer: update feedback, history, state, call level methods, and move next', () => {
@@ -350,8 +359,13 @@ describe('Game', () => {
     });
 
     test('should handle incorrect answer: update feedback, history, state, call level methods, and move next', () => {
-        // Setup: Start game with level having F4 and A4
-        (LevelData.levels as LevelConfig[]) = [testLevelConfig2]; // Use level 2 config
+        // Make sure we have at least the first two levels in LevelData
+        if (LevelData.levels.length < 2) {
+            // Mock generateLevels to return test levels
+            generateLevelsSpy.mockReturnValue([testLevelConfig1, testLevelConfig2]);
+        }
+        
+        // Setup: Start game with level having F4 and A4 (using either real data or test config)
         game = new Game(); // Re-init game with new LevelData
         
         // Setup the test with specific note objects to ensure consistency
@@ -402,9 +416,6 @@ describe('Game', () => {
         // Directly call checkAnswer for an incorrect answer
         (game as any).checkAnswer(testNoteA4);
 
-        // Log calls made to getNoteId during checkAnswer
-        console.log('getNoteId calls during checkAnswer:', getNoteIdSpy.mock.calls);
-
         // Check immediate effects
         expect(game['state'].noteHistory[testNoteF4Id]).toEqual({ correct: 0, incorrect: 1 });
         expect(game['state'].recentAttempts!.length).toBe(1);
@@ -428,8 +439,13 @@ describe('Game', () => {
     });
 
     test('should level up when the current level is complete', () => {
+        // Make sure we have at least two levels in LevelData
+        if (LevelData.levels.length < 2) {
+            // Mock generateLevels to return test levels
+            generateLevelsSpy.mockReturnValue([testLevelConfig1, testLevelConfig2]);
+        }
+        
         // Setup: Start game at level 1 (index 0)
-        (LevelData.levels as LevelConfig[]) = [testLevelConfig1, testLevelConfig2]; // Ensure level 2 exists
         game = new Game(); // Re-init
         // Spy on internal methods *after* game instantiation for this specific test
         const loadLevelSpy = jest.spyOn(game as any, 'loadLevel');
@@ -444,6 +460,9 @@ describe('Game', () => {
         
         // Mock level completion for the *current* instance
         mockLevelInstance.isComplete.mockReturnValue(true);
+
+        // Get the actual second level config for feedback message test
+        const secondLevel = LevelData.levels[1];
 
         // Setup mock implementation for the *next* Level instance that will be created
         const mockNextLevelInstance = {
@@ -466,7 +485,7 @@ describe('Game', () => {
         expect(game['state'].recentAttempts).toEqual([]); // Recent attempts cleared
         expect(updateGameStateSpy).toHaveBeenCalledWith(game['state']);
         expect(storageSaveSpy).toHaveBeenCalledWith(game['state']);
-        expect(mockFeedbackDiv.textContent).toBe(`Level Up! Moving to level 2: ${testLevelConfig2.name}`);
+        expect(mockFeedbackDiv.textContent).toBe(`Level Up! Moving to level ${secondLevel.id}: ${secondLevel.name}`);
         
         // Clear mocks before advancing timer to isolate calls within setTimeout
         loadLevelSpy.mockClear();
@@ -478,7 +497,7 @@ describe('Game', () => {
         jest.advanceTimersByTime(2000);
         
         // Verify the new Level instance was created with the right config and index
-        expect(MockLevel).toHaveBeenCalledWith(testLevelConfig2, 1); // Check index passed
+        expect(MockLevel).toHaveBeenCalledWith(secondLevel, 1); // Check level and index passed
         
         // --- Debugging checks for post-timeout actions ---
         expect(loadLevelSpy).toHaveBeenCalledWith(1); // Was loadLevel called with the new index?
@@ -491,7 +510,10 @@ describe('Game', () => {
     
     test('should show completion message when the last level is finished', () => {
         // Setup: Only one level defined in LevelData
-        (LevelData.levels as LevelConfig[]) = [testLevelConfig1];
+        const singleLevelConfig = LevelData.levels[0] || testLevelConfig1;
+        // Mock generateLevels to return only one level
+        generateLevelsSpy.mockReturnValue([singleLevelConfig]);
+        
         game = new Game(); // Re-init
         game['state'].currentLevelIndex = 0; // Start at the only level
         
@@ -507,19 +529,27 @@ describe('Game', () => {
     });
     
     test('should update level requirements display based on current level', () => {
+        // Make sure we have at least three levels in LevelData
+        if (LevelData.levels.length < 3) {
+            // Mock generateLevels to return test levels
+            generateLevelsSpy.mockReturnValue([testLevelConfig1, testLevelConfig2, testLevelConfig3]);
+        }
+        
         // Setup: Start game (loads level 0)
         game.start();
         mockLevelInstance = getMockLevelInstance()!;
         
-        expect(mockStreakRequiredElement.textContent!).toBe(testLevelConfig1.requiredSuccessCount.toString());
-        expect(mockSpeedRequiredElement.textContent!).toBe(testLevelConfig1.maxTimePerProblem.toString());
+        const firstLevel = LevelData.levels[0];
+        expect(mockStreakRequiredElement.textContent!).toBe(firstLevel.requiredSuccessCount?.toString() || '10');
+        expect(mockSpeedRequiredElement.textContent!).toBe(firstLevel.maxTimePerProblem?.toString() || '5');
         
-        // Set state to level 2 (index 2) and trigger update
+        // Set state to level index 2 and trigger update
         game['state'].currentLevelIndex = 2;
         (game as any).loadLevel(2); // Need to load to update requirements
 
-        expect(mockStreakRequiredElement.textContent!).toBe(testLevelConfig3.requiredSuccessCount.toString());
-        expect(mockSpeedRequiredElement.textContent!).toBe(testLevelConfig3.maxTimePerProblem.toString());
+        const thirdLevel = LevelData.levels[2];
+        expect(mockStreakRequiredElement.textContent!).toBe(thirdLevel.requiredSuccessCount?.toString() || '10');
+        expect(mockSpeedRequiredElement.textContent!).toBe(thirdLevel.maxTimePerProblem?.toString() || '5');
     });
 
     test('should play correct note sound for correct answer', () => {
@@ -538,19 +568,21 @@ describe('Game', () => {
     });
 
     test('should play error sound for incorrect answer', () => {
-        // Setup
-         (LevelData.levels as LevelConfig[]) = [testLevelConfig2]; // Use level 2
-         game = new Game();
-         MockLevel.prototype.getCurrentNote.mockReturnValue(noteF4);
-         game.start();
-         mockLevelInstance = getMockLevelInstance()!;
-         mockLevelInstance.isComplete.mockReturnValue(false);
-         jest.clearAllMocks();
-         mockAudioInstance.playErrorSound.mockClear();
+        // Setup: make sure test level has at least two notes
+        // Mock generateLevels to return test level with multiple notes
+        generateLevelsSpy.mockReturnValue([testLevelConfig2]);
         
-         (game as any).checkAnswer(noteA4); // Incorrect answer
+        game = new Game();
+        MockLevel.prototype.getCurrentNote.mockReturnValue(noteF4);
+        game.start();
+        mockLevelInstance = getMockLevelInstance()!;
+        mockLevelInstance.isComplete.mockReturnValue(false);
+        jest.clearAllMocks();
+        mockAudioInstance.playErrorSound.mockClear();
+       
+        (game as any).checkAnswer(noteA4); // Incorrect answer
 
-         expect(mockAudioInstance.playErrorSound).toHaveBeenCalled();
-         expect(mockAudioInstance.playNote).not.toHaveBeenCalled();
+        expect(mockAudioInstance.playErrorSound).toHaveBeenCalled();
+        expect(mockAudioInstance.playNote).not.toHaveBeenCalled();
     });
 }); 

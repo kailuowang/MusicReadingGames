@@ -104,7 +104,6 @@ export class Level {
         if (potentialNote) {
             this.currentNote = potentialNote;
             this.lastNoteAsked = this.currentNote;
-            console.log(`Selected Note: ${NoteUtils.getNoteLabel(this.currentNote)} from ${sourceDescription}`);
         } else if (!this.currentNote && this.config.notes.length > 0) {
             this.currentNote = this.config.notes[0];
             this.lastNoteAsked = this.currentNote;
@@ -123,13 +122,11 @@ export class Level {
                 entry.consecutiveCorrect++;
                 if (entry.consecutiveCorrect >= 3) {
                     this.mistakenNotesPool.delete(noteId);
-                    console.log(`Note ${noteId} removed from mistaken pool after 3 correct answers.`);
                 } else {
                     this.mistakenNotesPool.set(noteId, entry);
                 }
             }
         } else {
-            console.log(`Note ${noteId} added/updated in mistaken pool.`);
             this.mistakenNotesPool.set(noteId, { note: note, consecutiveCorrect: 0 });
         }
     }

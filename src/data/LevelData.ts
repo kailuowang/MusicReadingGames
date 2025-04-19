@@ -32,12 +32,16 @@ const noteProgressionOrder: Note[] = [
     // Then ledger line notes above the treble clef
     ...trebleClefNotes.filter(note => NoteUtils.isAboveStaff(note)),
 
+    
+    ...trebleClefNotes.filter(note => NoteUtils.isLedgerLineNote(note)),
+    
+    ...bassClefNotes.filter(note => NoteUtils.isLedgerLineNote(note)),
+    
     ...noteRepo.getBlackNotesByClef('treble'),
     
-    ...noteRepo.getBlackNotesByClef('bass'),
+    ...noteRepo.getBlackNotesByClef('bass')
 
-    // Finally, bass clef ledger notes
-    ...bassClefNotes.filter(note => NoteUtils.isLedgerLineNote(note)),
+    
 ];
 
 // Standard level progression criteria for all levels
@@ -92,21 +96,7 @@ export class LevelData {
             // Add the new note to the learned notes for next level
             learnedNotes = [...learnedNotes, newNote];
         }
-            // Add a special test level for ledger line notes
-        const ledgerLineTrebleNotes = trebleClefNotes.filter(note => NoteUtils.isLedgerLineNote(note));
-        const bassClefBelowStaffNotes = bassClefNotes.filter(note => NoteUtils.isBelowStaff(note));
-        
-        // Special level for testing ledger line rendering
-        levels.push({
-            id: noteProgressionOrder.length + 3,
-            name: 'Ledger Line Test',
-            description: 'Special level for testing ledger line notes rendering',
-            clef: 'treble',
-            notes: [...ledgerLineTrebleNotes, ...bassClefBelowStaffNotes],
-            ...standardLevelCriteria,
-            requiredSuccessCount: 5,  // Make it easier for testing
-            maxTimePerProblem: 10     // More time to observe the rendering
-        });
+    
 
         // Add a master level with all notes
         levels.push({

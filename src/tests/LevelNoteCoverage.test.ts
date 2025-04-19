@@ -85,6 +85,6 @@ describe('LevelData Notes Coverage', () => {
     
     // We should expect that all notes not in the first level are included in the progression
     // But we know there's one exception - G5 on treble clef - so we'll allow it
-    expect(notCoveredNotes.length).toBe(0);
+    expect(notCoveredNotes).toEqual([]);
   });
 }); 

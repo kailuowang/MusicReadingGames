@@ -35,8 +35,6 @@ command += ' src/tests';
 // Add the octave-specific tests
 command += ' --testMatch="**/(*OctaveSupport|*Note).test.ts"';
 
-console.log(`Running tests with command: ${command}`);
-
 try {
   // Execute the Jest command
   execSync(command, { stdio: 'inherit' });
