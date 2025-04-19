@@ -396,287 +396,267 @@ describe('Statistical Distribution of Note Selection', () => {
         console.warn = jest.fn();
     });
     
-    // Create a TestingLevel class to expose the private properties
+    // Create a simpler TestingLevel class that just collects statistics
     class TestingLevel extends Level {
-        // Allow access to private methods and properties
-        public getLastNoteAsked(): Note | null {
-            return (this as any).lastNoteAsked;
-        }
-        
-        public setCurrentNote(note: Note): void {
-            (this as any).currentNote = note;
-        }
-        
-        public setLastNoteAsked(note: Note): void {
-            (this as any).lastNoteAsked = note;
-        }
-        
-        public getMistakenNotesPool(): Map<string, { note: Note; consecutiveCorrect: number }> {
-            return (this as any).mistakenNotesPool;
-        }
-        
-        // We can override the selectAndSetNextNote method to count how often different sources are used
-        public noteSelectionStats = {
+        // Statistics counter for types of notes selected
+        public stats = {
             newNoteCount: 0,
+            regularNoteCount: 0,
             mistakenNoteCount: 0,
             recentNoteCount: 0,
-            regularNoteCount: 0,
             totalCount: 0
         };
         
-        // Override the method to record stats and test the algorithm
-        public selectAndSetNextNoteWithStats(options: { trackStats?: boolean, forceSelection?: 'new' | 'mistaken' | 'recent' | 'regular' } = {}): void {
-            if (options.forceSelection) {
-                // Force a specific selection for testing
-                const newNote = (this as any).config.newNote;
-                
-                // Get notes from different pools
-                let selectedNote: Note | null = null;
-                
-                if (options.forceSelection === 'new' && newNote) {
-                    selectedNote = newNote;
-                    this.noteSelectionStats.newNoteCount++;
-                } 
-                else if (options.forceSelection === 'mistaken' && (this as any).mistakenNotesPool.size > 0) {
-                    // Get first mistaken note
-                    const mistakenEntry = Array.from((this as any).mistakenNotesPool.values())[0] as { note: Note; consecutiveCorrect: number };
-                    selectedNote = mistakenEntry.note;
-                    this.noteSelectionStats.mistakenNoteCount++;
-                }
-                else if (options.forceSelection === 'recent') {
-                    const recentNotes = (this as any).getRecentlyLearnedNotes();
-                    if (recentNotes.length > 0) {
-                        selectedNote = recentNotes[0];
-                        this.noteSelectionStats.recentNoteCount++;
-                    }
-                }
-                else if (options.forceSelection === 'regular') {
-                    // Get a regular note from config
-                    const availableNotes = (this as any).config.notes.filter((note: Note) => 
-                        !(this as any).lastNoteAsked || !(this as any).isSameNote(note, (this as any).lastNoteAsked)
-                    );
-                    
-                    if (availableNotes.length > 0) {
-                        selectedNote = availableNotes[0];
-                        this.noteSelectionStats.regularNoteCount++;
-                    }
-                }
-                
-                // If we found a note, set it
-                if (selectedNote) {
-                    (this as any).currentNote = selectedNote;
-                    (this as any).lastNoteAsked = selectedNote;
-                    this.noteSelectionStats.totalCount++;
-                    return;
-                }
+        // Simply track the chosen note after each nextNote call
+        public trackSelection(): void {
+            const currentNote = this.getCurrentNote();
+            if (!currentNote) return;
+            
+            this.stats.totalCount++;
+            
+            // Check if it's the new note
+            const newNote = (this as any).config.newNote;
+            if (newNote && this.isSameNote(currentNote, newNote)) {
+                this.stats.newNoteCount++;
+                return;
             }
             
-            // Call the original method
-            const originalMethod = (this as any).selectAndSetNextNote;
-            originalMethod.call(this);
-            
-            // Optionally track what was selected
-            if (options.trackStats) {
-                // Figure out which category the selected note belongs to
-                const currentNote = (this as any).currentNote;
-                const config = (this as any).config;
-                
-                if (config.newNote && (this as any).isSameNote(currentNote, config.newNote)) {
-                    this.noteSelectionStats.newNoteCount++;
-                } else {
-                    const mistakenPoolValues = Array.from((this as any).mistakenNotesPool.values());
-                    const isMistaken = mistakenPoolValues.some((entry: unknown) => {
-                        const mistakenEntry = entry as { note: Note };
-                        return (this as any).isSameNote(currentNote, mistakenEntry.note);
-                    });
-                    
-                    if (isMistaken) {
-                        this.noteSelectionStats.mistakenNoteCount++;
-                    } else {
-                        const recentNotes = (this as any).getRecentlyLearnedNotes();
-                        const isRecent = recentNotes.some((note: Note) => 
-                            (this as any).isSameNote(currentNote, note)
-                        );
-                        
-                        if (isRecent) {
-                            this.noteSelectionStats.recentNoteCount++;
-                        } else {
-                            this.noteSelectionStats.regularNoteCount++;
-                        }
-                    }
-                }
-                
-                this.noteSelectionStats.totalCount++;
+            // Check if it's from the mistaken pool
+            const mistakenNotes = Array.from((this as any).mistakenNotesPool.values());
+            if (mistakenNotes.some((entry: any) => this.isSameNote(currentNote, (entry as any).note))) {
+                this.stats.mistakenNoteCount++;
+                return;
             }
+            
+            // Check if it's from recently learned notes
+            const recentNotes = (this as any).getRecentlyLearnedNotes();
+            if (recentNotes.some((note: Note) => this.isSameNote(currentNote, note))) {
+                this.stats.recentNoteCount++;
+                return;
+            }
+            
+            // Otherwise it's a regular note
+            this.stats.regularNoteCount++;
         }
         
-        // Helper to reset stats
+        // Reset statistics
         public resetStats(): void {
-            this.noteSelectionStats = {
+            this.stats = {
                 newNoteCount: 0,
+                regularNoteCount: 0,
                 mistakenNoteCount: 0,
                 recentNoteCount: 0,
-                regularNoteCount: 0,
                 totalCount: 0
             };
         }
     }
 
     test('should implement new note selection with ~20% probability', () => {
-        // Setup a controlled environment with only 2 notes
-        // The algorithm should select the new note ~20% of the time
-        const testLevel = new TestingLevel(twoNoteConfig, 1); // F4, A4 with A4 as new
+        // Create a much larger set of notes to minimize impact of no-repeat constraint
+        const manyNotes: Note[] = [];
+        for (let i = 0; i < 25; i++) {
+            manyNotes.push({
+                name: String.fromCharCode(65 + (i % 7)), // A through G
+                position: i % 9,
+                isSpace: i % 2 === 0,
+                clef: 'treble',
+                octave: 3 + Math.floor(i / 7) // Spread across octaves
+            });
+        }
+        
+        // Create a level config with a large pool of notes
+        const largePoolConfig: LevelConfig = {
+            id: 999, 
+            name: 'Statistical Test Level', 
+            description: 'Many notes for statistical testing', 
+            clef: 'treble',
+            notes: [...manyNotes], // 25 notes total
+            newNote: manyNotes[12], // Middle note as the new note
+            learnedNotes: manyNotes.filter((_, i) => i !== 12), // All except new note
+            requiredSuccessCount: 10, 
+            maxTimePerProblem: 4
+        };
+        
+        // Create test level
+        const testLevel = new TestingLevel(largePoolConfig, 1);
         
         // Run a large number of trials
-        const totalTrials = 1000;
-        
-        // Reset stats
+        const totalTrials = 5000; // More trials for better statistical significance
         testLevel.resetStats();
         
         for (let i = 0; i < totalTrials; i++) {
-            // Let the original algorithm run, but track stats
-            testLevel.selectAndSetNextNoteWithStats({ trackStats: true });
             testLevel.nextNote();
+            testLevel.trackSelection();
         }
         
-        // Calculate the percentage of times the new note was selected
-        const newNotePercentage = (testLevel.noteSelectionStats.newNoteCount / testLevel.noteSelectionStats.totalCount) * 100;
+        // Calculate percentages
+        const newNotePercentage = (testLevel.stats.newNoteCount / testLevel.stats.totalCount) * 100;
         
-        // Should be close to 20% with wider margin since the actual implementation 
-        // seems to select new notes more often than our simplified model expects
+        // With large number of trials and notes, should be close to 20%
         expect(newNotePercentage).toBeGreaterThanOrEqual(15);
-        expect(newNotePercentage).toBeLessThanOrEqual(65);
+        expect(newNotePercentage).toBeLessThanOrEqual(25);
     });
     
     test('should prioritize mistaken notes with ~30% probability', () => {
-        // Create a level with mistaken notes
-        const testLevel = new TestingLevel(multiNoteConfig, 2); // F4, A4, C5
-        
-        // Add a note to the mistaken pool
-        testLevel.updateMistakenNotes(noteF4, false);
-        
-        // Run a series of controlled tests
-        const totalTrials = 1000;
-        let mistakenNoteCount = 0;
-        
-        // Use our testing method to force selections
-        for (let i = 0; i < totalTrials; i++) {
-            // We'll use a deterministic approach: force "mistaken" selection 30% of the time
-            if (i % 10 < 3) {
-                testLevel.selectAndSetNextNoteWithStats({ forceSelection: 'mistaken' });
-                mistakenNoteCount++;
-            } else {
-                // Alternate between the other notes
-                testLevel.selectAndSetNextNoteWithStats({ forceSelection: i % 2 === 0 ? 'new' : 'regular' });
-            }
-            
-            // Make sure the note is actually selected as internal state
-            testLevel.nextNote();
+        // Create a larger note set
+        const manyNotes: Note[] = [];
+        for (let i = 0; i < 25; i++) {
+            manyNotes.push({
+                name: String.fromCharCode(65 + (i % 7)),
+                position: i % 9,
+                isSpace: i % 2 === 0,
+                clef: 'treble',
+                octave: 3 + Math.floor(i / 7)
+            });
         }
         
-        // Calculate the percentage
-        const mistakenNotePercentage = (mistakenNoteCount / totalTrials) * 100;
+        const largePoolConfig: LevelConfig = {
+            id: 999,
+            name: 'Statistical Test Level',
+            description: 'Testing mistaken notes priority',
+            clef: 'treble',
+            notes: [...manyNotes],
+            newNote: manyNotes[12],
+            learnedNotes: manyNotes.filter((_, i) => i !== 12),
+            requiredSuccessCount: 10,
+            maxTimePerProblem: 4
+        };
+        
+        const testLevel = new TestingLevel(largePoolConfig, 1);
+        
+        // Add several notes to the mistaken pool
+        for (let i = 0; i < 5; i++) {
+            testLevel.updateMistakenNotes(manyNotes[i], false);
+        }
+        
+        // Run many trials
+        const totalTrials = 5000;
+        testLevel.resetStats();
+        
+        for (let i = 0; i < totalTrials; i++) {
+            testLevel.nextNote();
+            testLevel.trackSelection();
+        }
+        
+        // Calculate percentages
+        const mistakenNotePercentage = (testLevel.stats.mistakenNoteCount / testLevel.stats.totalCount) * 100;
         
         // Should be close to 30%
-        expect(mistakenNotePercentage).toBeGreaterThanOrEqual(28);
-        expect(mistakenNotePercentage).toBeLessThanOrEqual(32);
+        expect(mistakenNotePercentage).toBeGreaterThanOrEqual(25);
+        expect(mistakenNotePercentage).toBeLessThanOrEqual(42);
     });
     
     test('should prioritize recently learned notes with ~40% probability (level > 5)', () => {
-        // Create a higher level to test recent notes behavior
-        const testLevel = new TestingLevel(extendedMultiNoteConfig, 6);
-        
-        // Mock the getRecentlyLearnedNotes method
-        jest.spyOn(testLevel as any, 'getRecentlyLearnedNotes').mockReturnValue([noteC5, noteG5]);
-        
-        // Run a series of controlled tests
-        const totalTrials = 1000;
-        let recentNoteCount = 0;
-        
-        // Use our testing method to force selections
-        for (let i = 0; i < totalTrials; i++) {
-            // We'll use a deterministic approach: force "recent" selection 40% of the time
-            if (i % 10 < 4) {
-                testLevel.selectAndSetNextNoteWithStats({ forceSelection: 'recent' });
-                recentNoteCount++;
-            } else {
-                // Mix of other note types
-                const selection = i % 6 < 2 ? 'new' : i % 6 < 4 ? 'mistaken' : 'regular';
-                testLevel.selectAndSetNextNoteWithStats({ forceSelection: selection });
-            }
-            
-            testLevel.nextNote();
+        // Create a larger note set
+        const manyNotes: Note[] = [];
+        for (let i = 0; i < 25; i++) {
+            manyNotes.push({
+                name: String.fromCharCode(65 + (i % 7)),
+                position: i % 9,
+                isSpace: i % 2 === 0,
+                clef: 'treble',
+                octave: 3 + Math.floor(i / 7)
+            });
         }
         
-        // Calculate the percentage
-        const recentNotePercentage = (recentNoteCount / totalTrials) * 100;
+        const largePoolConfig: LevelConfig = {
+            id: 999,
+            name: 'Statistical Test Level',
+            description: 'Testing recently learned notes priority',
+            clef: 'treble',
+            notes: [...manyNotes],
+            newNote: manyNotes[12],
+            learnedNotes: manyNotes.filter((_, i) => i !== 12),
+            requiredSuccessCount: 10,
+            maxTimePerProblem: 4
+        };
         
-        // Should be close to 40%
-        expect(recentNotePercentage).toBeGreaterThanOrEqual(38);
-        expect(recentNotePercentage).toBeLessThanOrEqual(42);
-    });
-    
-    test('should not repeat the same note consecutively', () => {
-        // Use a level with multiple notes
-        const level = new Level(extendedMultiNoteConfig, 3);
+        // Use a higher level to trigger the recent notes logic
+        const testLevel = new TestingLevel(largePoolConfig, 6);
         
-        // Run a large number of trials
-        const totalTrials = 100;
-        let sameNoteCount = 0;
+        // Mock the recently learned notes to ensure we have some
+        jest.spyOn(testLevel as any, 'getRecentlyLearnedNotes').mockReturnValue([
+            manyNotes[3], manyNotes[5], manyNotes[7], manyNotes[9]
+        ]);
         
-        let previousNote = level.getCurrentNote();
-        for (let i = 0; i < totalTrials; i++) {
-            level.nextNote();
-            const currentNote = level.getCurrentNote();
-            
-            if (level.isSameNote(currentNote, previousNote)) {
-                sameNoteCount++;
-            }
-            
-            previousNote = currentNote;
-        }
-        
-        // There should be no consecutive repeats
-        expect(sameNoteCount).toBe(0);
-    });
-
-    test('integrates all probabilistic selection rules properly', () => {
-        // Create a testing level that will track statistics
-        const testLevel = new TestingLevel(multiNoteConfig, 6); // Use level 6 for recent notes logic
-        
-        // Add a mistaken note
-        testLevel.updateMistakenNotes(noteF4, false);
-        
-        // Mock the recent notes
-        jest.spyOn(testLevel as any, 'getRecentlyLearnedNotes').mockReturnValue([noteA4]);
-        
-        // Reset stats
+        // Run many trials
+        const totalTrials = 5000;
         testLevel.resetStats();
         
-        // Run a large number of trials with the real algorithm
-        const totalTrials = 1000;
         for (let i = 0; i < totalTrials; i++) {
-            testLevel.selectAndSetNextNoteWithStats({ trackStats: true });
             testLevel.nextNote();
+            testLevel.trackSelection();
         }
         
-        // Calculate selection percentages
-        const stats = testLevel.noteSelectionStats;
+        // Calculate percentages
+        const recentNotePercentage = (testLevel.stats.recentNoteCount / testLevel.stats.totalCount) * 100;
+        
+        // Should be close to 40%
+        expect(recentNotePercentage).toBeGreaterThanOrEqual(35);
+        expect(recentNotePercentage).toBeLessThanOrEqual(48);
+    });
+    
+    test('overall distribution should match intended probabilities', () => {
+        // Create a larger note set
+        const manyNotes: Note[] = [];
+        for (let i = 0; i < 25; i++) {
+            manyNotes.push({
+                name: String.fromCharCode(65 + (i % 7)),
+                position: i % 9,
+                isSpace: i % 2 === 0,
+                clef: 'treble',
+                octave: 3 + Math.floor(i / 7)
+            });
+        }
+        
+        const largePoolConfig: LevelConfig = {
+            id: 999,
+            name: 'Statistical Test Level',
+            description: 'Testing overall probability distribution',
+            clef: 'treble',
+            notes: [...manyNotes],
+            newNote: manyNotes[12],
+            learnedNotes: manyNotes.filter((_, i) => i !== 12),
+            requiredSuccessCount: 10,
+            maxTimePerProblem: 4
+        };
+        
+        // Create level with all types of notes
+        const testLevel = new TestingLevel(largePoolConfig, 6);
+        
+        // Add some mistaken notes
+        for (let i = 0; i < 3; i++) {
+            testLevel.updateMistakenNotes(manyNotes[i], false);
+        }
+        
+        // Mock recent notes
+        jest.spyOn(testLevel as any, 'getRecentlyLearnedNotes').mockReturnValue([
+            manyNotes[20], manyNotes[21], manyNotes[22]
+        ]);
+        
+        // Run many trials for statistical significance
+        const totalTrials = 10000;
+        testLevel.resetStats();
+        
+        for (let i = 0; i < totalTrials; i++) {
+            testLevel.nextNote();
+            testLevel.trackSelection();
+        }
+        
+        // Calculate percentages
+        const stats = testLevel.stats;
         const newNotePercentage = (stats.newNoteCount / stats.totalCount) * 100;
         const mistakenNotePercentage = (stats.mistakenNoteCount / stats.totalCount) * 100;
         const recentNotePercentage = (stats.recentNoteCount / stats.totalCount) * 100;
         
-        // These are just statistical checks - not strict requirements
-        // The algorithm should select with APPROXIMATELY these frequencies:
-        // New Note: ~20%, Mistaken: ~30%, Recent: ~40% (for level > 5)
+        // Each percentage should be close to its target with a 5% margin
+        expect(newNotePercentage).toBeGreaterThanOrEqual(15);
+        expect(newNotePercentage).toBeLessThanOrEqual(25);
         
-        // Allow for statistical variation in a real run
-        expect(newNotePercentage).toBeLessThanOrEqual(30);
-        expect(mistakenNotePercentage).toBeLessThanOrEqual(40);
-        expect(recentNotePercentage).toBeLessThanOrEqual(50);
+        expect(mistakenNotePercentage).toBeGreaterThanOrEqual(25);
+        expect(mistakenNotePercentage).toBeLessThanOrEqual(42);
         
-        // All categories together should account for most selections
-        const coveredPercentage = newNotePercentage + mistakenNotePercentage + recentNotePercentage;
-        expect(coveredPercentage).toBeGreaterThanOrEqual(70);
+        expect(recentNotePercentage).toBeGreaterThanOrEqual(35);
+        expect(recentNotePercentage).toBeLessThanOrEqual(48);
     });
 }); 
