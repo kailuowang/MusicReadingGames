@@ -56,6 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     startButton.addEventListener('click', () => {
+        // Initialize and force resume audio explicitly on user interaction
+        audioPlayer.initialize();
+        audioPlayer.forceResumeContext(); // Force resume within user gesture
+        
         game.start();
         updateGameRunningUI();
     });

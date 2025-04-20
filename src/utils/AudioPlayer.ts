@@ -13,12 +13,46 @@ export class AudioPlayer {
     private audioContext: AudioContext | null = null;
     private isInitialized: boolean = false;
     private isTestEnvironment: boolean = false;
+    private fallbackAudio: HTMLAudioElement | null = null;
+    private useAudioElementFallback: boolean = false;
     
     // Prevent direct instantiation
     private constructor() {
         // Check if we're in a test environment (no window.AudioContext)
         this.isTestEnvironment = typeof window === 'undefined' || 
                                  typeof (window.AudioContext || window.webkitAudioContext) === 'undefined';
+        
+        // Create fallback audio element
+        if (!this.isTestEnvironment) {
+            this.createFallbackAudio();
+        }
+    }
+    
+    /**
+     * Create a fallback audio element for platforms where WebAudio might not work
+     */
+    private createFallbackAudio(): void {
+        try {
+            this.fallbackAudio = document.createElement('audio');
+            // Set up sine wave beep sound as a base64 WAV
+            const sineWaveBase64 = 'UklGRjQrAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAZGF0YRAr';
+            this.fallbackAudio.src = `data:audio/wav;base64,${sineWaveBase64}`;
+            this.fallbackAudio.volume = 0.5;
+            
+            // Add to body but hide it
+            this.fallbackAudio.style.display = 'none';
+            document.body.appendChild(this.fallbackAudio);
+            
+            // iOS requires user interaction to enable audio playback
+            document.addEventListener('touchstart', () => {
+                if (this.fallbackAudio) {
+                    // Just load it, don't play yet
+                    this.fallbackAudio.load();
+                }
+            }, { once: true });
+        } catch (error) {
+            console.error('Failed to create fallback audio:', error);
+        }
     }
     
     /**
@@ -29,6 +63,14 @@ export class AudioPlayer {
             AudioPlayer.instance = new AudioPlayer();
         }
         return AudioPlayer.instance;
+    }
+    
+    /**
+     * Get the current AudioContext state
+     */
+    public getAudioContextState(): string {
+        if (!this.audioContext) return 'not initialized';
+        return this.audioContext.state;
     }
     
     /**
@@ -43,12 +85,63 @@ export class AudioPlayer {
             this.audioContext = new AudioContextClass();
             this.isInitialized = true;
             
-            // Resume if suspended
-            if (this.audioContext.state === 'suspended') {
-                this.audioContext.resume();
-            }
+            // Resume immediately - this is critical for iOS
+            this.forceResumeContext();
+            
+            console.log(`AudioContext initialized with state: ${this.audioContext.state}`);
         } catch (error) {
             console.error('Failed to initialize AudioContext:', error);
+        }
+    }
+    
+    /**
+     * Force resume the audio context - should be called directly from a user gesture
+     */
+    public forceResumeContext(): void {
+        if (!this.audioContext) {
+            // Create the context in the same gesture if it doesn't exist
+            this.initialize();
+            return;
+        }
+        
+        if (this.audioContext.state === 'suspended') {
+            console.log('Attempting to resume suspended AudioContext...');
+            
+            // For iOS, we need a special approach to ensure it resumes
+            this.audioContext.resume().then(() => {
+                console.log(`AudioContext resumed: ${this.audioContext?.state}`);
+                // Play a silent sound to ensure audio is fully unlocked on iOS
+                this.playSilentSound();
+            }).catch(err => {
+                console.error('Failed to resume AudioContext:', err);
+            });
+        }
+    }
+    
+    /**
+     * Play a silent sound to unlock audio on iOS
+     */
+    private playSilentSound(): void {
+        if (!this.audioContext) return;
+        
+        try {
+            // Create a silent oscillator
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            // Make it silent
+            gainNode.gain.value = 0.001;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            // Play for a very short time
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.001);
+            
+            console.log('Silent sound played to unlock audio');
+        } catch (error) {
+            console.error('Error playing silent sound:', error);
         }
     }
     
@@ -58,18 +151,16 @@ export class AudioPlayer {
     public testSound(): void {
         if (this.isTestEnvironment) return;
         
+        // Try to create or resume audio context first
+        this.forceResumeContext();
+        
         if (!this.audioContext) {
-            this.initialize();
-        }
-        
-        if (!this.audioContext) return;
-        
-        // If context is suspended, try to resume it
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
+            console.error('Cannot play test sound - AudioContext not available');
+            return;
         }
         
         try {
+            console.log('Playing test sound...');
             // Create a simple beep sound
             const oscillator = this.audioContext.createOscillator();
             const gainNode = this.audioContext.createGain();
@@ -86,8 +177,13 @@ export class AudioPlayer {
             
             oscillator.start();
             oscillator.stop(this.audioContext.currentTime + 0.5);
+            
+            console.log('Test sound triggered, AudioContext state:', this.audioContext.state);
         } catch (error) {
             console.error('Error playing test sound:', error);
+            
+            // Try a direct audio element as ultimate fallback
+            this.playFallbackBeep();
         }
     }
     
@@ -97,15 +193,12 @@ export class AudioPlayer {
     public playNote(noteName: string, octave: number): void {
         if (this.isTestEnvironment) return;
         
+        // Try to create or resume audio context first
+        this.forceResumeContext();
+        
         if (!this.audioContext) {
-            this.initialize();
-        }
-        
-        if (!this.audioContext) return;
-        
-        // If context is suspended, try to resume it
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
+            console.error('Cannot play note - AudioContext not available');
+            return;
         }
         
         try {
@@ -132,6 +225,9 @@ export class AudioPlayer {
             oscillator.stop(this.audioContext.currentTime + 1.5);
         } catch (error) {
             console.error('Error playing note:', error);
+            
+            // Try a direct fallback beep as last resort
+            this.playFallbackBeep();
         }
     }
     
@@ -141,15 +237,12 @@ export class AudioPlayer {
     public playErrorSound(): void {
         if (this.isTestEnvironment) return;
         
+        // Try to create or resume audio context first
+        this.forceResumeContext();
+        
         if (!this.audioContext) {
-            this.initialize();
-        }
-        
-        if (!this.audioContext) return;
-        
-        // If context is suspended, try to resume it
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
+            console.error('Cannot play error sound - AudioContext not available');
+            return;
         }
         
         try {
@@ -171,6 +264,9 @@ export class AudioPlayer {
             oscillator.stop(this.audioContext.currentTime + 0.5);
         } catch (error) {
             console.error('Error playing error sound:', error);
+            
+            // Try a direct fallback beep as last resort
+            this.playFallbackBeep();
         }
     }
     
@@ -180,15 +276,12 @@ export class AudioPlayer {
     public playSuccessSound(): void {
         if (this.isTestEnvironment) return;
         
+        // Try to create or resume audio context first
+        this.forceResumeContext();
+        
         if (!this.audioContext) {
-            this.initialize();
-        }
-        
-        if (!this.audioContext) return;
-        
-        // If context is suspended, try to resume it
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
+            console.error('Cannot play success sound - AudioContext not available');
+            return;
         }
         
         try {
@@ -199,6 +292,9 @@ export class AudioPlayer {
             this.playSuccessNote(523.25, 0.45, 0.3); // C5 (hold longer)
         } catch (error) {
             console.error('Error playing success sound:', error);
+            
+            // Try a direct fallback beep as last resort
+            this.playFallbackBeep();
         }
     }
     
@@ -223,6 +319,33 @@ export class AudioPlayer {
         
         oscillator.start(this.audioContext.currentTime + startDelay);
         oscillator.stop(this.audioContext.currentTime + startDelay + duration);
+    }
+    
+    /**
+     * Fallback method to play a beep using HTML Audio element
+     * This is used as a last resort when WebAudio fails
+     */
+    private playFallbackBeep(): void {
+        try {
+            const audio = new Audio();
+            // Very short base64 encoded audio file
+            audio.src = 'data:audio/wav;base64,UklGRjQrAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAZGF0YRAr';
+            audio.volume = 1.0;
+            
+            // We need to call play() synchronously within a user gesture,
+            // and handle the promise separately
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('Fallback audio played successfully');
+                }).catch(err => {
+                    console.error('Fallback audio failed:', err);
+                });
+            }
+        } catch (e) {
+            console.error('All audio methods failed:', e);
+        }
     }
     
     /**
