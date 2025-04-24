@@ -1,4 +1,4 @@
-# Possibly the best free music note reading training webapp in the world.
+# Level up your sight-reading with Music Reading Game—100 % free, ad-free, and seriously fun.
 
 ## [Play It Here!](https://kailuowang.github.io/MusicReadingGames/)
 
