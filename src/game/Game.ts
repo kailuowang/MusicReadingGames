@@ -811,8 +811,19 @@ export class Game {
     private updateStats(): void {
         // Update current streak
         const currentStreak = this.calculateCurrentStreak();
+        
+        // Get the current level's requirements for comparison
+        const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
+        const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
+        
         if (this.streakElement) {
-            this.streakElement.textContent = currentStreak.toString();
+            if (currentStreak >= requiredSuccessCount) {
+                this.streakElement.textContent = "Goal Reached!";
+                this.streakElement.className = 'stats-value goal-met';
+            } else {
+                this.streakElement.textContent = currentStreak.toString();
+                this.streakElement.className = 'stats-value';
+            }
         }
         
         // Update average speed (with 1 decimal place)
@@ -821,7 +832,7 @@ export class Game {
             this.speedElement.textContent = currentStreak > 0 ? avgSpeed.toFixed(1) : "-";
         }
         
-        // Update visual feedback
+        // Update visual feedback - Modify to avoid overriding the streak element class
         this.updateVisualFeedback();
         
         // Show cartoon character at 4-streak
@@ -864,14 +875,8 @@ export class Game {
         const requiredSuccessCount = currentLevelConfig?.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
         const maxTimePerProblem = currentLevelConfig?.maxTimePerProblem || LevelData.LEVEL_CRITERIA.maxTimePerProblem;
         
-        // Update streak styling
-        if (currentStreak >= requiredSuccessCount) {
-            this.streakElement.className = 'stats-value goal-met';
-        } else if (currentStreak >= requiredSuccessCount / 2) {
-            this.streakElement.className = 'stats-value progress';
-        } else {
-            this.streakElement.className = 'stats-value';
-        }
+        // Skip updating streak element styling as it's now handled in updateStats()
+        // We'll just leave the speed element styling logic
         
         // Update speed styling
         if (avgSpeed > 0 && avgSpeed < maxTimePerProblem) {
