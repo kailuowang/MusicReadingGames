@@ -1,6 +1,6 @@
 # Possibly the best free music note reading training webapp in the world.
 
-## [Play It Here](https://kailuowang.github.io/MusicReadingGames/)
+## [Play It Here!](https://kailuowang.github.io/MusicReadingGames/)
 
 ## Features
 
@@ -11,12 +11,6 @@
 * Tracking of progress and performance
 * Level progression based on streaks and speed
 * Multiple user profiles
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Start the development server: `npm start`
 
 ## Game Mechanics
 
