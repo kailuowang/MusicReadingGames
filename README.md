@@ -1,6 +1,6 @@
-# Music Reading Game
+# Possibly the best free music note reading training webapp in the world.
 
-An HTML and TypeScript application for learning to read music notes.
+## [Play It Here](https://kailuowang.github.io/MusicReadingGames/)
 
 ## Features
 
