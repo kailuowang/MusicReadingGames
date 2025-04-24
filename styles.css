@@ -682,7 +682,7 @@ button {
 }
 
 button:hover {
-    background-color: #1a2530;
+    background-color: #2980b9;
 }
 
 /* Stats Popup Styles */
@@ -1278,4 +1278,23 @@ button:hover {
 
 .error-modal-button:hover {
     background-color: #2980b9;
+}
+
+/* Class to make links look like buttons */
+.button-style-link {
+    display: inline-block; /* Needed for padding/margin on anchor */
+    padding: 10px 20px;
+    background-color: #3498db; /* Match button style */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none; /* Remove underline from link */
+    transition: background-color 0.3s;
+}
+
+.button-style-link:hover {
+    background-color: #2980b9; /* Match button hover style */
+    color: white; /* Ensure text remains white on hover */
 } 

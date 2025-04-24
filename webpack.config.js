@@ -36,6 +36,12 @@ module.exports = {
       template: './index.html',
       inject: true
     }),
+    new HtmlWebpackPlugin({
+      filename: 'tutorial.html',
+      template: './tutorial.html',
+      inject: true,
+      chunks: ['main']
+    }),
     new CopyWebpackPlugin({
       patterns: [
         { 

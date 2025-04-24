@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Reading Game - Tutorial</title>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container tutorial-container">
+        <div class="tutorial-header">
+            <h1>Music Reading Game Tutorial</h1>
+            <a href="index.html" class="back-to-game">Back to Game</a>
+        </div>
+
+        <div class="tutorial-content">
+            <section class="tutorial-section">
+                <h2><i class="fas fa-gamepad"></i> Game Basics</h2>
+                <div class="tutorial-item">
+                    <div class="tutorial-description">
+                        <h3>How to Play</h3>
+                        <p>The game presents music notes on a staff. Your goal is to identify the correct note by clicking the corresponding piano key. Each correct answer earns you points and builds your streak!</p>
+                        <p>Look at the note displayed on the staff (the lines and spaces where music is written). Then, find and click the matching white key on the piano keyboard below. If you're correct, you'll hear the note play and your streak will increase. If you're incorrect, you'll hear a "thud" sound, and your streak will reset.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tutorial-section">
+                <h2><i class="fas fa-level-up-alt"></i> Levels and Progression</h2>
+                <div class="tutorial-item">
+                    <div class="tutorial-description">
+                        <h3>Progressive Difficulty</h3>
+                        <p>The game features multiple levels with increasing difficulty. New notes are introduced gradually as you master the current ones. To advance to the next level, you need to achieve a specific streak and speed requirement.</p>
+                        <p>Each level focuses on a small set of notes. As you consistently identify them correctly and quickly, you'll unlock the next level, which introduces more notes. The required streak (number of correct answers in a row) and speed (average time per note) for advancing are shown in the top-right corner of the game screen.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tutorial-section">
+                <h2><i class="fas fa-user"></i> User Profiles</h2>
+                <div class="tutorial-item">
+                    <div class="tutorial-description">
+                        <h3>Multiple Profiles</h3>
+                        <p>Create different profiles for multiple users. Each profile keeps track of its own progress, learned notes, and completed levels. Access profiles through the settings panel.</p>
+                        <p>Click the gear icon (<i class="fas fa-cog"></i>) to open the settings panel. Here you can see the list of existing profiles, select a profile to play with, or add a new profile by typing a name and clicking "Add Profile". All game progress, including unlocked levels and learned notes, is saved separately for each profile.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tutorial-section">
+                <h2><i class="fas fa-cog"></i> Game Settings</h2>
+                <div class="tutorial-item">
+                    <div class="tutorial-description">
+                        <h3>Customization Options</h3>
+                        <p>Access the settings panel by clicking the gear icon (<i class="fas fa-cog"></i>) on the main game screen. Here you can adjust various options:</p>
+                        <ul>
+                            <li><strong>Show Note Names:</strong> Toggle this to display the letter names (C, D, E, F, G, A, B) directly on the piano keys. This can be helpful when you are first learning the keyboard layout.</li>
+                            <li><strong>Show All Notes:</strong> By default, only the notes relevant to the current level are shown as active options. Toggle this setting to see all possible notes highlighted on the keyboard, even those not currently being tested. This can help understand the context of the notes within the full piano range.</li>
+                            <li><strong>Reset Progress:</strong> If you want to start over for the currently selected profile, click this button. It will reset the unlocked levels and learned notes for that profile only.</li>
+                            <li><strong>Clear All Profiles:</strong> This button completely wipes all saved data, including all user profiles and their progress. Use with caution, as this action cannot be undone!</li>
+                            <li><strong>Level Selection:</strong> You can manually select any level you have previously unlocked for the current profile. This allows you to practice specific sets of notes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tutorial-section">
+                <h2><i class="fas fa-trophy"></i> Game Interface</h2>
+                <div class="tutorial-item">
+                    <div class="tutorial-description">
+                        <h3>Understanding the Game Screen</h3>
+                        <p>The main game screen displays several key pieces of information:</p>
+                        <ul>
+                            <li><strong>Top Left (Profile & Stats):</strong></li>
+                            <ul>
+                                <li><strong>Profile Name:</strong> Shows the currently active user profile.</li>
+                                <li><strong>Streak Counter <i class="fas fa-fire"></i>:</strong> Displays how many notes you have identified correctly in a row. Getting an answer wrong resets this to 0.</li>
+                                <li><strong>Speed Display <i class="fas fa-tachometer-alt"></i>:</strong> Shows your average response time per note in seconds for the current session. Faster times are better!</li>
+                            </ul>
+                            <li><strong>Top Right (Level & Goal):</strong></li>
+                            <ul>
+                                <li><strong>Level Name:</strong> Indicates the current difficulty level you are playing.</li>
+                                <li><strong>Goal <i class="fas fa-trophy"></i>:</strong> Displays the required streak and maximum average speed needed to pass the current level and unlock the next one.</li>
+                            </ul>
+                             <li><strong>Center (Staff):</strong> This is where the note you need to identify is displayed.</li>
+                             <li><strong>Bottom (Piano Keyboard):</strong> Click the correct key here to identify the note shown on the staff.</li>
+                             <li><strong>Feedback Area:</strong> Below the staff, messages like "Correct!" or "Incorrect!" will appear.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tutorial-section">
+                <h2><i class="fas fa-music"></i> Audio Features</h2>
+                <div class="tutorial-item">
+                    <div class="tutorial-description">
+                        <h3>Sound Feedback</h3>
+                        <p>The game provides immediate audio feedback to help you learn:</p>
+                        <ul>
+                            <li><strong>Correct Answer:</strong> Plays the synthesized sound of the correct piano note. This helps associate the visual note with its sound.</li>
+                            <li><strong>Incorrect Answer:</strong> Plays a low "thud" sound, providing clear feedback without being musically distracting.</li>
+                            <li><strong>Level Completion:</strong> When you meet the goal for a level, a short, celebratory sound sequence plays to acknowledge your achievement.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="tutorial-footer">
+            <a href="index.html" class="back-to-game">Ready to Play? Go to Game</a>
+        </div>
+    </div>
+    
+    <script>
+        // Add any interactive tutorial functionality here if needed
+        document.addEventListener('DOMContentLoaded', () => {
+            // Can add tutorial-specific interactions here
+        });
+    </script>
+</body>
+</html> 
