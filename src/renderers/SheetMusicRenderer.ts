@@ -153,11 +153,17 @@ export class SheetMusicRenderer {
         }
         
         if (clef === 'treble') {
-            // Position for treble clef - enlarged
-            this.ctx.drawImage(this.trebleClefImg, 80, this.staffY - 65, 50, 130);
+            
+            const trebleWidth = 130; 
+            const trebleHeight = 230;
+            const trebleYOffset = 108;
+            this.ctx.drawImage(this.trebleClefImg, 50, this.staffY - trebleYOffset, trebleWidth, trebleHeight);
         } else {
-            // Position for bass clef - enlarged
-            this.ctx.drawImage(this.bassClefImg, 80, this.staffY - 45, 50, 90);
+            
+            const bassWidth = 90; 
+            const bassHeight = 120; 
+            const bassYOffset = 60; 
+            this.ctx.drawImage(this.bassClefImg, 80, this.staffY - bassYOffset, bassWidth, bassHeight);
         }
     }
     
