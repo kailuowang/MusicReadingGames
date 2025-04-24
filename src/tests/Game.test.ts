@@ -438,7 +438,7 @@ describe('Game', () => {
         
         // Check error modal is shown for incorrect answers with correct message
         expect(mockErrorModalElement.classList.contains('active')).toBe(true);
-        expect(mockErrorMessageElement.textContent).toBe(`Incorrect. That was ${NoteUtils.getNoteLabel(testNoteF4)}, not ${NoteUtils.getNoteLabel(testNoteA4)}`);
+        expect(mockErrorMessageElement.textContent).toBe(`That was ${NoteUtils.getNoteLabel(testNoteF4)}, not ${NoteUtils.getNoteLabel(testNoteA4)}`);
         
         expect(updateGameStateSpy).toHaveBeenCalled(); // Check save on incorrect answer
         expect(storageSaveSpy).toHaveBeenCalled();

@@ -488,9 +488,9 @@ export class Game {
         } else {
             // Check if it's the same note name but different octave
             if (currentNote.name === selectedNote.name && currentNote.octave !== selectedNote.octave) {
-                this.showFeedback(false, `Incorrect. That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)} (wrong octave)`);
+                this.showFeedback(false, `That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)} (wrong octave)`);
             } else {
-                this.showFeedback(false, `Incorrect. That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)}`);
+                this.showFeedback(false, `That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)}`);
             }
         }
 

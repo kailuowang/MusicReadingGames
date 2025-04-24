@@ -134,7 +134,6 @@ describe('Octave Support', () => {
             (game as any).checkAnswer(highCNote);
             // Check error modal is shown with correct message
             expect(mockElements.mockErrorModalElement.classList.contains('active')).toBe(true);
-            expect(mockElements.mockErrorMessageElement.textContent).toContain("Incorrect");
             expect(mockElements.mockErrorMessageElement.textContent).toContain("wrong octave");
             expect(mockElements.mockErrorMessageElement.textContent).toContain("C 4");
             expect(mockElements.mockErrorMessageElement.textContent).toContain("C 5");
@@ -147,7 +146,6 @@ describe('Octave Support', () => {
             (game as any).checkAnswer(dNote);
             // Check error modal is shown with correct message
             expect(mockElements.mockErrorModalElement.classList.contains('active')).toBe(true);
-            expect(mockElements.mockErrorMessageElement.textContent).toContain("Incorrect");
             expect(mockElements.mockErrorMessageElement.textContent).toContain("C 4");
             expect(mockElements.mockErrorMessageElement.textContent).toContain("D 4");
         });

@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const statsPopup = document.getElementById('stats-popup') as HTMLDivElement;
     const closeButton = document.querySelector('.close-button') as HTMLSpanElement;
     const learnedNotesList = document.getElementById('learned-notes-list') as HTMLDivElement;
-    const levelsList = document.getElementById('levels-list') as HTMLDivElement;
     const levelSelection = document.getElementById('level-selection') as HTMLDivElement;
     
     // Function to update UI based on game running state
@@ -418,46 +417,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function updateLevelsInfo() {
-        levelsList.innerHTML = '';
-        
-        // Get all levels from LevelData
-        const levels = LevelData.levels;
-        
-        // Get current game state for highlighting current level
-        const gameState = storageManager.loadState();
-        const currentLevelIndex = gameState ? gameState.currentLevelIndex : -1;
-        
-        levels.forEach((level, index) => {
-            const levelItem = document.createElement('div');
-            levelItem.className = 'level-item';
-            if (index === currentLevelIndex) {
-                levelItem.style.borderLeftColor = '#e74c3c'; // Highlight current level
-            }
-            
-            const notesHtml = level.notes.map(note => {
-                // If this is the new note in this level, highlight it
-                const isNewNote = level.newNote && NoteUtils.getNoteId(note) === NoteUtils.getNoteId(level.newNote);
-                                 
-                return `<span class="note-tag ${isNewNote ? 'new' : ''}">${NoteUtils.getNoteLabel(note)} (${note.clef})</span>`;
-            }).join('');
-            
-            levelItem.innerHTML = `
-                <div class="level-title">Level ${level.id}: ${level.name} ${index === currentLevelIndex ? '(Current)' : ''}</div>
-                <div class="level-description">${level.description}</div>
-                <div class="level-notes">
-                    ${notesHtml}
-                </div>
-            `;
-            
-            levelsList.appendChild(levelItem);
-        });
-    }
-    
     function updateStatsPopup() {
         updateProfilesList();
         updateLearnedNotes();
-        updateLevelsInfo();
         updateLevelSelection();
         updateToggleButtonsText();
     }
