@@ -85,6 +85,11 @@ export class Game {
     private noteDisplayTime: number = 0; // Store when the current note was displayed
     private lastStreakAnimation: number = 0; // Track when we last showed a streak animation
     private characterElement: HTMLElement | null = null;
+    private streakDisplayElement: HTMLElement;
+    private errorModalElement: HTMLElement;
+    private errorMessageElement: HTMLElement;
+    private errorModalCloseElement: HTMLElement;
+    private errorModalButtonElement: HTMLElement;
     
     constructor() {
         // Default state (will be overridden by profile if available)
@@ -111,6 +116,21 @@ export class Game {
         this.speedElement = document.getElementById('speed-value') as HTMLElement;
         this.streakRequiredElement = document.getElementById('streak-required') as HTMLElement;
         this.speedRequiredElement = document.getElementById('speed-required') as HTMLElement;
+        
+        // Get elements for new feedback UI
+        this.streakDisplayElement = document.getElementById('streak-display') as HTMLElement;
+        this.errorModalElement = document.getElementById('error-modal') as HTMLElement;
+        this.errorMessageElement = document.getElementById('error-message') as HTMLElement;
+        this.errorModalCloseElement = document.querySelector('.error-modal-close') as HTMLElement;
+        this.errorModalButtonElement = document.getElementById('error-modal-button') as HTMLElement;
+        
+        // Set up error modal dismiss handlers
+        if (this.errorModalCloseElement) {
+            this.errorModalCloseElement.addEventListener('click', () => this.closeErrorModal());
+        }
+        if (this.errorModalButtonElement) {
+            this.errorModalButtonElement.addEventListener('click', () => this.closeErrorModal());
+        }
         
         // Get profile display elements
         this.profileNameElement = document.getElementById('profile-name') as HTMLElement;
@@ -510,7 +530,12 @@ export class Game {
         // Check if there are more levels
         if (this.state.currentLevelIndex < LevelData.levels.length) {
             const nextLevel = LevelData.levels[this.state.currentLevelIndex];
-            this.showFeedback(true, `Level Up! Moving to level ${this.state.currentLevelIndex + 1}: ${nextLevel.name}`);
+            
+            // Display level up message in error modal
+            if (this.errorMessageElement) {
+                this.errorMessageElement.textContent = `Level Up! Moving to level ${this.state.currentLevelIndex + 1}: ${nextLevel.name}`;
+                this.errorModalElement.classList.add('active');
+            }
             
             // Only show celebration in browser environment
             if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -518,10 +543,17 @@ export class Game {
             }
             
             setTimeout(() => {
+                // Close the modal
+                this.closeErrorModal();
+                
                 this.loadLevel(this.state.currentLevelIndex);
             }, typeof window !== 'undefined' && typeof document !== 'undefined' ? 3500 : 2000); // Use longer delay only in browser
         } else {
-            this.showFeedback(true, "Congratulations! You've completed all levels!");
+            // Display game completion message in error modal
+            if (this.errorMessageElement) {
+                this.errorMessageElement.textContent = "Congratulations! You've completed all levels!";
+                this.errorModalElement.classList.add('active');
+            }
             
             // Only show celebration in browser environment
             if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -632,21 +664,41 @@ export class Game {
     }
     
     private showFeedback(isCorrect: boolean, message: string): void {
-        this.feedbackElement.textContent = message;
-        this.feedbackElement.className = isCorrect ? 'correct' : 'incorrect';
-        
-        // Reset animation by removing active class
-        this.feedbackElement.classList.remove('active');
-        
-        // Force a reflow to restart animation
-        void this.feedbackElement.offsetWidth;
-        
-        // Add active class to trigger animation
-        this.feedbackElement.classList.add('active');
-        
-        // Create celebration effects for correct answers
         if (isCorrect) {
-            this.showCelebration();
+            // For correct answers, flash the streak display green
+            if (this.streakDisplayElement) {
+                // Remove animation class if it exists
+                this.streakDisplayElement.classList.remove('flash-green');
+                
+                // Force a reflow to restart animation
+                void this.streakDisplayElement.offsetWidth;
+                
+                // Add animation class
+                this.streakDisplayElement.classList.add('flash-green');
+                
+                // Create celebration effects for correct answers
+                this.showCelebration();
+            }
+        } else {
+            // For incorrect answers, show modal with error message
+            if (this.errorModalElement && this.errorMessageElement) {
+                this.errorMessageElement.textContent = message;
+                this.errorModalElement.classList.add('active');
+                
+                // Close the modal automatically after a delay
+                setTimeout(() => {
+                    this.closeErrorModal();
+                }, 3000);
+            }
+        }
+    }
+    
+    /**
+     * Closes the error modal
+     */
+    private closeErrorModal(): void {
+        if (this.errorModalElement) {
+            this.errorModalElement.classList.remove('active');
         }
     }
     
@@ -707,8 +759,17 @@ export class Game {
     }
     
     private clearFeedback(): void {
+        // Clear any old feedback text
         this.feedbackElement.textContent = '';
         this.feedbackElement.className = '';
+        
+        // Close the error modal if it's open
+        this.closeErrorModal();
+        
+        // Remove any flash effects from streak display
+        if (this.streakDisplayElement) {
+            this.streakDisplayElement.classList.remove('flash-green');
+        }
     }
     
     private calculateCurrentStreak(): number {

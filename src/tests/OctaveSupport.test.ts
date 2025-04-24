@@ -19,6 +19,11 @@ const setupDomElements = () => {
     const mockSpeedElement = document.createElement('span');
     const mockStreakRequiredElement = document.createElement('span');
     const mockSpeedRequiredElement = document.createElement('span');
+    const mockStreakDisplayElement = document.createElement('div');
+    const mockErrorModalElement = document.createElement('div');
+    const mockErrorMessageElement = document.createElement('div');
+    const mockErrorModalCloseElement = document.createElement('span');
+    const mockErrorModalButtonElement = document.createElement('button');
 
     // Ensure DOM elements have initial text content
     mockStreakElement.textContent = '0';
@@ -36,8 +41,20 @@ const setupDomElements = () => {
             case 'speed-value': return mockSpeedElement;
             case 'streak-required': return mockStreakRequiredElement;
             case 'speed-required': return mockSpeedRequiredElement;
+            case 'streak-display': return mockStreakDisplayElement;
+            case 'error-modal': return mockErrorModalElement;
+            case 'error-message': return mockErrorMessageElement;
+            case 'error-modal-button': return mockErrorModalButtonElement;
             default: return null;
         }
+    });
+    
+    // Mock querySelector for error-modal-close element
+    document.querySelector = jest.fn((selector: string): HTMLElement | null => {
+        if (selector === '.error-modal-close') {
+            return mockErrorModalCloseElement;
+        }
+        return null;
     });
     
     return {
@@ -47,7 +64,10 @@ const setupDomElements = () => {
         mockStreakElement,
         mockSpeedElement,
         mockStreakRequiredElement,
-        mockSpeedRequiredElement
+        mockSpeedRequiredElement,
+        mockStreakDisplayElement,
+        mockErrorModalElement,
+        mockErrorMessageElement
     };
 };
 
@@ -103,33 +123,33 @@ describe('Octave Support', () => {
             
             // Case 1: Correct note with correct octave (middle C)
             (game as any).checkAnswer(middleCNote);
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("Correct");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 4");
-            expect(mockElements.mockFeedbackDiv.className).toBe('correct active');
+            // Check if streak display flashes green for correct answer
+            expect(mockElements.mockStreakDisplayElement.classList.contains('flash-green')).toBe(true);
             
             // Clear feedback for next test
-            mockElements.mockFeedbackDiv.textContent = '';
-            mockElements.mockFeedbackDiv.className = '';
+            mockElements.mockStreakDisplayElement.classList.remove('flash-green');
+            mockElements.mockErrorModalElement.classList.remove('active');
             
             // Case 2: Same note name but wrong octave (high C)
             (game as any).checkAnswer(highCNote);
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("Incorrect");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("wrong octave");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 4");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 5");
-            expect(mockElements.mockFeedbackDiv.className).toBe('incorrect active');
+            // Check error modal is shown with correct message
+            expect(mockElements.mockErrorModalElement.classList.contains('active')).toBe(true);
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("Incorrect");
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("wrong octave");
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("C 4");
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("C 5");
             
             // Clear feedback for next test
-            mockElements.mockFeedbackDiv.textContent = '';
-            mockElements.mockFeedbackDiv.className = '';
+            mockElements.mockErrorModalElement.classList.remove('active');
             
             // Case 3: Completely different note
             const dNote: Note = { name: 'D', position: 4, isSpace: false, clef: 'treble', octave: 4 };
             (game as any).checkAnswer(dNote);
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("Incorrect");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("C 4");
-            expect(mockElements.mockFeedbackDiv.textContent).toContain("D 4");
-            expect(mockElements.mockFeedbackDiv.className).toBe('incorrect active');
+            // Check error modal is shown with correct message
+            expect(mockElements.mockErrorModalElement.classList.contains('active')).toBe(true);
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("Incorrect");
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("C 4");
+            expect(mockElements.mockErrorMessageElement.textContent).toContain("D 4");
         });
     });
     

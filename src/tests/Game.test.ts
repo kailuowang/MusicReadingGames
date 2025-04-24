@@ -73,6 +73,11 @@ const mockStreakElement = document.createElement('span');
 const mockSpeedElement = document.createElement('span');
 const mockStreakRequiredElement = document.createElement('span');
 const mockSpeedRequiredElement = document.createElement('span');
+const mockStreakDisplayElement = document.createElement('div');
+const mockErrorModalElement = document.createElement('div');
+const mockErrorMessageElement = document.createElement('div');
+const mockErrorModalCloseElement = document.createElement('span');
+const mockErrorModalButtonElement = document.createElement('button');
 
 // Ensure DOM elements have initial text content
 mockStreakElement.textContent = '0';
@@ -90,8 +95,20 @@ document.getElementById = jest.fn((id: string): HTMLElement | null => {
         case 'speed-value': return mockSpeedElement;
         case 'streak-required': return mockStreakRequiredElement;
         case 'speed-required': return mockSpeedRequiredElement;
+        case 'streak-display': return mockStreakDisplayElement;
+        case 'error-modal': return mockErrorModalElement;
+        case 'error-message': return mockErrorMessageElement;
+        case 'error-modal-button': return mockErrorModalButtonElement;
         default: return null;
     }
+});
+
+// Mock querySelector for error-modal-close element
+document.querySelector = jest.fn((selector: string): HTMLElement | null => {
+    if (selector === '.error-modal-close') {
+        return mockErrorModalCloseElement;
+    }
+    return null;
 });
 
 // --- Test Suite ---
@@ -338,9 +355,10 @@ describe('Game', () => {
         expect(game['state'].noteHistory[noteIds.F4]).toEqual({ correct: 1, incorrect: 0 });
         expect(game['state'].recentAttempts!.length).toBe(1);
         expect(game['state'].recentAttempts![0].isCorrect).toBe(true);
-        // Call original static method for label check
-        expect(mockFeedbackDiv.textContent).toBe(`Correct! That's ${NoteUtils.getNoteLabel(testNotes.F4)}`);
-        expect(mockFeedbackDiv.className).toBe('correct active');
+        
+        // Check the streak display has the flash-green class for correct answers
+        expect(mockStreakDisplayElement.classList.contains('flash-green')).toBe(true);
+        
         expect(updateGameStateSpy).toHaveBeenCalled(); // Check save on correct answer
         expect(storageSaveSpy).toHaveBeenCalled();
         expect(mockAudioInstance.playNote).toHaveBeenCalledWith('F', 4); // Check audio call args
@@ -417,9 +435,11 @@ describe('Game', () => {
         expect(game['state'].noteHistory[testNoteF4Id]).toEqual({ correct: 0, incorrect: 1 });
         expect(game['state'].recentAttempts!.length).toBe(1);
         expect(game['state'].recentAttempts![0].isCorrect).toBe(false);
-        // Call original static methods for label check
-        expect(mockFeedbackDiv.textContent).toBe(`Incorrect. That was ${NoteUtils.getNoteLabel(testNoteF4)}, not ${NoteUtils.getNoteLabel(testNoteA4)}`);
-        expect(mockFeedbackDiv.className).toBe('incorrect active');
+        
+        // Check error modal is shown for incorrect answers with correct message
+        expect(mockErrorModalElement.classList.contains('active')).toBe(true);
+        expect(mockErrorMessageElement.textContent).toBe(`Incorrect. That was ${NoteUtils.getNoteLabel(testNoteF4)}, not ${NoteUtils.getNoteLabel(testNoteA4)}`);
+        
         expect(updateGameStateSpy).toHaveBeenCalled(); // Check save on incorrect answer
         expect(storageSaveSpy).toHaveBeenCalled();
         expect(mockAudioInstance.playErrorSound).toHaveBeenCalled();
@@ -462,10 +482,10 @@ describe('Game', () => {
         expect(game['state'].recentAttempts).toEqual([]); // Attempts cleared
         expect(updateGameStateSpy).toHaveBeenCalled();
         expect(storageSaveSpy).toHaveBeenCalled();
-        expect(mockFeedbackDiv.textContent).toContain('Level Up!');
         
-        // Skip testing the timeout behavior since it depends on the animation
-        // and has proven to be brittle
+        // Verify modal shows level up message
+        expect(mockErrorModalElement.classList.contains('active')).toBe(true);
+        expect(mockErrorMessageElement.textContent).toContain('Level Up!');
     });
     
     test('should show completion message when the last level is finished', () => {
@@ -482,7 +502,11 @@ describe('Game', () => {
         
         // Check the outcome
         expect(game['state'].currentLevelIndex).toBe(1); // Index increments beyond available levels
-        expect(mockFeedbackDiv.textContent).toBe("Congratulations! You've completed all levels!");
+        
+        // Verify modal shows completion message
+        expect(mockErrorModalElement.classList.contains('active')).toBe(true);
+        expect(mockErrorMessageElement.textContent).toBe("Congratulations! You've completed all levels!");
+        
         expect(game['state'].isGameRunning).toBe(false);
         expect(updateGameStateSpy).toHaveBeenCalledWith(game['state']);
         expect(storageSaveSpy).toHaveBeenCalledWith(game['state']);
