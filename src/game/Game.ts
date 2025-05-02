@@ -385,6 +385,9 @@ export class Game {
         const levelData = levels[levelIndex];
         this.currentLevel = new Level(levelData, levelIndex);
         
+        // Reset recent attempts for the new level
+        this.state.recentAttempts = [];
+        
         // If the level has a new note, update the note history with an initial entry (still useful for overall stats)
         if (levelData.newNote) { // Check if newNote exists
             const noteId = NoteUtils.getNoteId(levelData.newNote);
@@ -396,11 +399,15 @@ export class Game {
              }
         }
         
-        this.displayCurrentNote();
         this.updateLevelRequirements();
         
         // Update profile display with level info
         this.updateProfileDisplay();
+        
+        // Update stats display (streak, speed, record) for the loaded level
+        this.updateStats();
+        
+        this.displayCurrentNote();
     }
     
     private displayCurrentNote(): void {
