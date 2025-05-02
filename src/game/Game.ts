@@ -879,15 +879,15 @@ export class Game {
         // Update visual feedback - Modify to avoid overriding the streak element class
         this.updateVisualFeedback();
         
-        // Show cartoon character at 4-streak
-        if (currentStreak === 4) {
+        // Show cartoon character at 4-streak, but only for levels below 4
+        if (currentStreak === 4 && this.state.currentLevelIndex < 4) {
             // Check if we haven't shown an animation recently (avoid showing it multiple times)
             const now = Date.now();
             if (now - this.lastStreakAnimation > 5000) { // Only show if it's been 5+ seconds
                 this.showCartoonCharacter();
                 this.lastStreakAnimation = now;
-           }
-       }
+            }
+        }
    }
     
     private updateLevelRequirements(): void {
