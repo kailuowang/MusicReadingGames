@@ -61,9 +61,14 @@ export class ProfileManager {
                 profile.displayPreferences = {
                     showNoteNames: true,
                     showAllNotes: false
-                };
-            }
-        }
+               };
+           }
+
+           // Initialize levelRecords if missing for backward compatibility
+           if (!profile.levelRecords) {
+               profile.levelRecords = {};
+           }
+       }
         
         return true;
     }
@@ -100,10 +105,11 @@ export class ProfileManager {
             createdAt: timestamp,
             lastUsed: timestamp,
             displayPreferences: {
-                showNoteNames: true,
-                showAllNotes: false
-            }
-        };
+               showNoteNames: true,
+               showAllNotes: false
+           },
+           levelRecords: {} // Initialize level records
+       };
         
         // Add to profiles array
         this.profilesState.profiles.push(newProfile);

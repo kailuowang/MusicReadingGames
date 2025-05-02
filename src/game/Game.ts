@@ -79,15 +79,17 @@ export class Game {
     private streakElement: HTMLElement;
     private speedElement: HTMLElement;
     private streakRequiredElement: HTMLElement;
-    private speedRequiredElement: HTMLElement;
-    private profileNameElement: HTMLElement | null = null;
-    private levelNameElement: HTMLElement | null = null;
+   private speedRequiredElement: HTMLElement;
+   private recordElement: HTMLElement; // Added for personal record display
+   private profileNameElement: HTMLElement | null = null;
+   private levelNameElement: HTMLElement | null = null;
     private noteDisplayTime: number = 0; // Store when the current note was displayed
     private lastStreakAnimation: number = 0; // Track when we last showed a streak animation
     private characterElement: HTMLElement | null = null;
-    private streakDisplayElement: HTMLElement;
-    private errorModalElement: HTMLElement;
-    private errorMessageElement: HTMLElement;
+   private streakDisplayElement: HTMLElement;
+   private recordDisplayElement: HTMLElement; // Added for the parent record display div
+   private errorModalElement: HTMLElement;
+   private errorMessageElement: HTMLElement;
     private errorModalCloseElement: HTMLElement;
     private errorModalButtonElement: HTMLElement;
     
@@ -115,12 +117,14 @@ export class Game {
         this.streakElement = document.getElementById('streak-value') as HTMLElement;
         this.speedElement = document.getElementById('speed-value') as HTMLElement;
         this.streakRequiredElement = document.getElementById('streak-required') as HTMLElement;
-        this.speedRequiredElement = document.getElementById('speed-required') as HTMLElement;
-        
-        // Get elements for new feedback UI
-        this.streakDisplayElement = document.getElementById('streak-display') as HTMLElement;
-        this.errorModalElement = document.getElementById('error-modal') as HTMLElement;
-        this.errorMessageElement = document.getElementById('error-message') as HTMLElement;
+       this.speedRequiredElement = document.getElementById('speed-required') as HTMLElement;
+       this.recordElement = document.getElementById('record-value') as HTMLElement; // Initialize record element
+
+       // Get elements for new feedback UI
+       this.streakDisplayElement = document.getElementById('streak-display') as HTMLElement;
+       this.recordDisplayElement = document.getElementById('record-display') as HTMLElement; // Initialize parent record display
+       this.errorModalElement = document.getElementById('error-modal') as HTMLElement;
+       this.errorMessageElement = document.getElementById('error-message') as HTMLElement;
         this.errorModalCloseElement = document.querySelector('.error-modal-close') as HTMLElement;
         this.errorModalButtonElement = document.getElementById('error-modal-button') as HTMLElement;
         
@@ -492,12 +496,13 @@ export class Game {
             } else {
                 this.showFeedback(false, `That was ${NoteUtils.getNoteLabel(currentNote)}, not ${NoteUtils.getNoteLabel(selectedNote)}`);
             }
-        }
+       }
 
-        this.updateStats();
-        this.saveState();
+       // Update stats *before* saving state to ensure record is saved if broken
+       this.updateStats();
+       this.saveState();
 
-        // Move to next note
+       // Move to next note
         setTimeout(() => {
             this.moveToNextNote();
         }, 150); // Slightly increased delay might feel smoother
@@ -768,9 +773,14 @@ export class Game {
         
         // Remove any flash effects from streak display
         if (this.streakDisplayElement) {
-            this.streakDisplayElement.classList.remove('flash-green');
-        }
-    }
+           this.streakDisplayElement.classList.remove('flash-green');
+       }
+       // Remove flash effect from record display
+      // Remove flash effect from record display (parent div)
+      if (this.recordDisplayElement) {
+          this.recordDisplayElement.classList.remove('flash-yellow');
+      }
+  }
     
     private calculateCurrentStreak(): number {
         if (!this.state.recentAttempts || this.state.recentAttempts.length === 0) {
@@ -808,9 +818,29 @@ export class Game {
         return totalTime / streakAttempts.length;
     }
     
-    private updateStats(): void {
-        // Update current streak
-        const currentStreak = this.calculateCurrentStreak();
+   private updateStats(): void {
+       const currentStreak = this.calculateCurrentStreak();
+       let highestStreak = 0; // Default highest streak
+       let newRecordSet = false;
+
+       // Get active profile to check/update records
+       const activeProfile = this.profileManager.getActiveProfile();
+       if (activeProfile) {
+           // Ensure levelRecords exists (it should due to ProfileManager changes)
+           activeProfile.levelRecords = activeProfile.levelRecords || {};
+
+           // Get current level's record
+           const levelRecord = activeProfile.levelRecords[this.state.currentLevelIndex] || { highestStreak: 0 };
+           highestStreak = levelRecord.highestStreak;
+
+           // Check for new record
+           if (currentStreak > highestStreak) {
+               highestStreak = currentStreak; // Update highest streak for immediate display
+               activeProfile.levelRecords[this.state.currentLevelIndex] = { highestStreak: currentStreak };
+               newRecordSet = true;
+               // Note: The actual saving happens in saveState(), which is called after updateStats() in checkAnswer()
+           }
+       }
         
         // Get the current level's requirements for comparison
         const currentLevelConfig = LevelData.levels[this.state.currentLevelIndex];
@@ -822,9 +852,23 @@ export class Game {
                 this.streakElement.className = 'stats-value goal-met';
             } else {
                 this.streakElement.textContent = currentStreak.toString();
-                this.streakElement.className = 'stats-value';
-            }
-        }
+               this.streakElement.className = 'stats-value';
+           }
+       }
+
+       // Update record display (hide if 0)
+      // Update record display (show number or '-')
+      if (this.recordElement) {
+          this.recordElement.textContent = highestStreak > 0 ? highestStreak.toString() : '-';
+      }
+
+      // Trigger flash on the parent display element if new record was set
+      if (this.recordDisplayElement && newRecordSet) {
+          this.recordDisplayElement.classList.remove('flash-yellow'); // Remove first for re-trigger
+          void this.recordDisplayElement.offsetWidth; // Force reflow
+         this.recordDisplayElement.classList.add('flash-yellow');
+         }
+     // Removed extra closing brace here
         
         // Update average speed (with 1 decimal place)
         const avgSpeed = this.calculateAverageSpeed();
@@ -842,9 +886,9 @@ export class Game {
             if (now - this.lastStreakAnimation > 5000) { // Only show if it's been 5+ seconds
                 this.showCartoonCharacter();
                 this.lastStreakAnimation = now;
-            }
-        }
-    }
+           }
+       }
+   }
     
     private updateLevelRequirements(): void {
         if (!this.currentLevel) return;

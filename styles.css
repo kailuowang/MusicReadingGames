@@ -1298,3 +1298,25 @@ button:hover {
     background-color: #2980b9; /* Match button hover style */
     color: white; /* Ensure text remains white on hover */
 } 
+/* Personal Record Display Styles */
+.stats-value.record {
+    margin-left: 8px; /* Add some space between streak and record */
+    color: #7f8c8d; /* Subdued color for the record */
+    font-size: 14px; /* Slightly smaller font size */
+    font-weight: normal; /* Normal weight */
+    display: inline-block; /* Needed for animation */
+    padding: 2px 5px; /* Add slight padding */
+    border-radius: 4px; /* Rounded corners */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+}
+
+/* Yellow flash animation for new record */
+@keyframes flashYellowAnimation {
+    0% { box-shadow: 0 0 0 0px rgba(243, 156, 18, 0); background-color: rgba(243, 156, 18, 0); }
+    50% { box-shadow: 0 0 15px 8px rgba(243, 156, 18, 0.6); background-color: rgba(243, 156, 18, 0.4); color: #333; }
+    100% { box-shadow: 0 0 0 0px rgba(243, 156, 18, 0); background-color: rgba(243, 156, 18, 0); }
+}
+
+.flash-yellow {
+    animation: flashYellowAnimation 0.7s ease-out;
+}
