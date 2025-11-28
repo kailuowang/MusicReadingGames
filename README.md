@@ -33,11 +33,17 @@ npm start
 This will start a local development server at `http://localhost:9000`.
 
 ### Deploy to GitHub Pages
-To deploy the latest version to the live site:
+
+**Option 1: Automated (Recommended)**
+The repository is set up with GitHub Actions. Simply push your changes to the `main` branch, and the workflow will automatically build and deploy the site.
+*Note: Ensure "GitHub Actions" is selected as the source in your repository's Settings > Pages.*
+
+**Option 2: Manual**
+To manually deploy the latest version to the live site:
 ```bash
 npm run deploy
 ```
-This command builds the project and pushes the `dist` folder to the `gh-pages` branch, triggering the GitHub Pages deployment.
+This command builds the project and pushes the `dist` folder to the `gh-pages` branch.
 
 ## License
 
