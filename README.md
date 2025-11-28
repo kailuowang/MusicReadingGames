@@ -24,6 +24,21 @@ The game uses the Web Audio API to synthesize:
 
 No external audio files are required, making the game fully self-contained.
 
+## Development & Deployment
+
+### Run Locally
+```bash
+npm start
+```
+This will start a local development server at `http://localhost:9000`.
+
+### Deploy to GitHub Pages
+To deploy the latest version to the live site:
+```bash
+npm run deploy
+```
+This command builds the project and pushes the `dist` folder to the `gh-pages` branch, triggering the GitHub Pages deployment.
+
 ## License
 
 MIT 
