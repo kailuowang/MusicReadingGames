@@ -466,4 +466,77 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial update of profiles list and UI state
     updateProfilesList();
     updateToggleButtonsText();
+    // Onboarding Logic
+    const onboardingModal = document.getElementById('onboarding-modal') as HTMLDivElement;
+    const startJourneyButton = document.getElementById('start-journey-button') as HTMLButtonElement;
+    const onboardingNameInput = document.getElementById('onboarding-name') as HTMLInputElement;
+    const instrumentButtons = onboardingModal.querySelectorAll('.instrument-select .toggle-button');
+    const difficultyCards = onboardingModal.querySelectorAll('.difficulty-card');
+
+    let selectedInstrument: 'piano' | 'violin' = 'piano';
+    let selectedStartLevel = 0;
+
+    // Check if we need to show onboarding (no profiles exist)
+    const profiles = game['profileManager'].getAllProfiles();
+    if (profiles.length === 0) {
+        onboardingModal.classList.add('active');
+        // Hide main game start button while onboarding
+        startButton.style.display = 'none';
+    }
+
+    // Instrument selection in onboarding
+    instrumentButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            instrumentButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedInstrument = (btn as HTMLElement).dataset.value as 'piano' | 'violin';
+        });
+    });
+
+    // Difficulty selection in onboarding
+    difficultyCards.forEach(card => {
+        card.addEventListener('click', () => {
+            difficultyCards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            selectedStartLevel = parseInt((card as HTMLElement).dataset.level || '0');
+        });
+    });
+
+    // Handle Start Journey
+    startJourneyButton.addEventListener('click', () => {
+        const name = onboardingNameInput.value.trim();
+        if (!name) {
+            alert('Please enter your name to start.');
+            return;
+        }
+
+        // Create the profile
+        const newProfile = game['profileManager'].createProfile(name);
+        game.setActiveProfile(newProfile.id);
+
+        // Set instrument
+        game.setInstrumentMode(selectedInstrument);
+
+        // Set starting level (if not beginner)
+        if (selectedStartLevel > 0) {
+            // We need to update the game state directly for the level
+            const profile = game['profileManager'].getActiveProfile();
+            if (profile) {
+                profile.gameState.currentLevelIndex = selectedStartLevel;
+                game['profileManager'].updateActiveProfileGameState(profile.gameState);
+                // Reload game state
+                game.setActiveProfile(newProfile.id);
+            }
+        }
+
+        // Close modal and start game
+        onboardingModal.classList.remove('active');
+
+        // Initialize audio and start
+        audioPlayer.initialize();
+        audioPlayer.forceResumeContext();
+        game.start();
+        updateGameRunningUI();
+    });
+
 }); 

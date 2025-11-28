@@ -1621,3 +1621,113 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transform: scale(1.05);
 }
+
+/* Onboarding Modal Styles */
+.onboarding-content {
+    max-width: 600px;
+    text-align: center;
+}
+
+.onboarding-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.difficulty-options {
+    display: flex;
+    gap: 10px;
+}
+
+.difficulty-card {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.difficulty-card:hover {
+    border-color: #3498db;
+    background-color: #eaf6fd;
+}
+
+.difficulty-card.active {
+    border-color: #3498db;
+    background-color: #3498db;
+    color: white;
+    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+}
+
+.difficulty-card h4 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+
+.difficulty-card p {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.primary-button {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+}
+
+.primary-button:hover {
+    background-color: #27ae60;
+}
+
+.instrument-select button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.instrument-select button:hover {
+    background-color: #e0e0e0;
+}
+
+.instrument-select button.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #2980b9;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
