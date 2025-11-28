@@ -11,13 +11,24 @@ export class Level {
     private mistakenNotesPool: Map<string, { note: Note; consecutiveCorrect: number }> = new Map();
     private levelIndex: number;
 
+    private noteFilter: ((note: Note) => boolean) | null = null;
+
     constructor(config: LevelConfig, levelIndex: number) {
         this.config = config;
         this.notes = [...config.notes];
         this.levelIndex = levelIndex;
         this.selectAndSetNextNote();
     }
-    
+
+    public setNoteFilter(filter: ((note: Note) => boolean) | null): void {
+        this.noteFilter = filter;
+        // If the current note is invalid under the new filter, select a new one
+        if (this.currentNote && this.noteFilter && !this.noteFilter(this.currentNote)) {
+            console.log("Current note invalid under new filter, selecting new note...");
+            this.selectAndSetNextNote();
+        }
+    }
+
     public getCurrentNote(): Note {
         if (!this.currentNote) {
             console.error("Current note is null, selecting a new one.");
@@ -25,23 +36,38 @@ export class Level {
         }
         return this.currentNote!;
     }
-    
+
     public getAvailableNotes(): Note[] {
+        if (this.noteFilter) {
+            return this.notes.filter(this.noteFilter);
+        }
         return this.notes;
     }
-    
+
     public nextNote(): void {
         this.selectAndSetNextNote();
     }
-    
+
     private selectAndSetNextNote(): void {
         let potentialNote: Note | null = null;
         let attempts = 0;
         let sourceDescription: string = "";
 
-        if (this.config.notes.length === 0) {
-            console.error(`Level ${this.levelIndex} has no notes defined.`);
-            return;
+        // Filter the base notes if a filter is set
+        let availableNotes = this.config.notes;
+        if (this.noteFilter) {
+            availableNotes = availableNotes.filter(this.noteFilter);
+        }
+
+        if (availableNotes.length === 0) {
+            console.warn(`Level ${this.levelIndex} has no available notes after filtering.`);
+            // Fallback to all notes if filter removes everything, to avoid broken game
+            if (this.config.notes.length > 0) {
+                availableNotes = this.config.notes;
+                console.warn("Falling back to unfiltered notes.");
+            } else {
+                return;
+            }
         }
 
         do {
@@ -50,28 +76,36 @@ export class Level {
             let sourcePool: Note[] = [];
 
             const recentlyLearnedNotes = this.getRecentlyLearnedNotes();
-            const mistakenNotes = Array.from(this.mistakenNotesPool.values()).map(entry => entry.note);
+            // Filter recently learned notes too
+            const filteredRecent = this.noteFilter ? recentlyLearnedNotes.filter(this.noteFilter) : recentlyLearnedNotes;
 
-            const recentProb = (this.levelIndex >= 5 && recentlyLearnedNotes.length > 0) ? 0.40 : 0;
-            const mistakenProb = (mistakenNotes.length > 0) ? 0.30 : 0;
-            const newNoteProb = this.config.newNote ? 0.20 : 0;
+            const mistakenNotes = Array.from(this.mistakenNotesPool.values()).map(entry => entry.note);
+            // Filter mistaken notes
+            const filteredMistaken = this.noteFilter ? mistakenNotes.filter(this.noteFilter) : mistakenNotes;
+
+            const recentProb = (this.levelIndex >= 5 && filteredRecent.length > 0) ? 0.40 : 0;
+            const mistakenProb = (filteredMistaken.length > 0) ? 0.30 : 0;
+
+            // Check if new note is valid
+            const newNoteValid = this.config.newNote && (!this.noteFilter || this.noteFilter(this.config.newNote));
+            const newNoteProb = newNoteValid ? 0.20 : 0;
 
             let totalProb = recentProb + mistakenProb + newNoteProb;
             let thresholdRecent = recentProb;
             let thresholdMistaken = thresholdRecent + mistakenProb;
             let thresholdNewNote = thresholdMistaken + newNoteProb;
 
-            if (p < thresholdRecent && recentlyLearnedNotes.length > 0) {
-                sourcePool = recentlyLearnedNotes;
+            if (p < thresholdRecent && filteredRecent.length > 0) {
+                sourcePool = filteredRecent;
                 sourceDescription = "Recently Learned";
-            } else if (p < thresholdMistaken && mistakenNotes.length > 0) {
-                sourcePool = mistakenNotes;
+            } else if (p < thresholdMistaken && filteredMistaken.length > 0) {
+                sourcePool = filteredMistaken;
                 sourceDescription = "Mistaken";
-            } else if (p < thresholdNewNote && this.config.newNote) {
+            } else if (p < thresholdNewNote && newNoteValid && this.config.newNote) {
                 sourcePool = [this.config.newNote];
                 sourceDescription = "New Note";
             } else {
-                sourcePool = this.config.notes;
+                sourcePool = availableNotes;
                 sourceDescription = "Learned (All Level Notes)";
             }
 
@@ -79,8 +113,8 @@ export class Level {
                 const randomIndex = Math.floor(Math.random() * sourcePool.length);
                 potentialNote = sourcePool[randomIndex];
             } else {
-                console.warn(`Selected pool '${sourceDescription}' was empty. Falling back to all level notes.`);
-                sourcePool = this.config.notes;
+                console.warn(`Selected pool '${sourceDescription}' was empty. Falling back to all available level notes.`);
+                sourcePool = availableNotes;
                 if (sourcePool.length > 0) {
                     const fallbackIndex = Math.floor(Math.random() * sourcePool.length);
                     potentialNote = sourcePool[fallbackIndex];
@@ -91,11 +125,11 @@ export class Level {
                 }
             }
 
-            if (attempts > 10 && this.config.notes.length > 1) {
+            if (attempts > 10 && availableNotes.length > 1) {
                 console.warn("Could not find a different note after 10 attempts. Allowing potential repeat.");
                 break;
             }
-            if (this.config.notes.length <= 1) {
+            if (availableNotes.length <= 1) {
                 break;
             }
 
@@ -104,15 +138,15 @@ export class Level {
         if (potentialNote) {
             this.currentNote = potentialNote;
             this.lastNoteAsked = this.currentNote;
-        } else if (!this.currentNote && this.config.notes.length > 0) {
-            this.currentNote = this.config.notes[0];
+        } else if (!this.currentNote && availableNotes.length > 0) {
+            this.currentNote = availableNotes[0];
             this.lastNoteAsked = this.currentNote;
-            console.error("Failed to select any note initially, assigned the first note of the level.");
+            console.error("Failed to select any note initially, assigned the first available note.");
         } else if (!potentialNote) {
             console.warn(`Selection failed or resulted in same note. Keeping current note: ${this.currentNote ? NoteUtils.getNoteLabel(this.currentNote) : 'null'}`);
         }
     }
-    
+
     public updateMistakenNotes(note: Note, isCorrect: boolean): void {
         const noteId = NoteUtils.getNoteId(note);
 
@@ -130,7 +164,7 @@ export class Level {
             this.mistakenNotesPool.set(noteId, { note: note, consecutiveCorrect: 0 });
         }
     }
-    
+
     private getRecentlyLearnedNotes(): Note[] {
         const recentNewNotes: Note[] = [];
         const allLevels = LevelData.levels;
@@ -150,12 +184,12 @@ export class Level {
         }
         return recentNewNotes;
     }
-    
+
     public isSameNote(note1: Note, note2: Note | null): boolean {
         if (!note1 || !note2) return false;
         return NoteUtils.getNoteId(note1) === NoteUtils.getNoteId(note2);
     }
-    
+
     public isComplete(recentAttempts: { isCorrect: boolean; timeSpent: number }[]): boolean {
         const requiredSuccessCount = this.config.requiredSuccessCount || LevelData.LEVEL_CRITERIA.requiredSuccessCount;
         const maxTimePerProblem = this.config.maxTimePerProblem || LevelData.LEVEL_CRITERIA.maxTimePerProblem;
@@ -177,7 +211,7 @@ export class Level {
 
         // Get only the attempts in the current streak
         const streakAttempts = recentAttempts.slice(-streak);
-        
+
         // Calculate average time for streak attempts
         const averageTime = streakAttempts.reduce((sum, attempt) => sum + attempt.timeSpent, 0) / streakAttempts.length;
         const isFastEnough = averageTime < maxTimePerProblem;

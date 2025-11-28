@@ -126,11 +126,13 @@ h1 {
 }
 
 .piano-keyboard[data-clef="treble"] {
-    background-color: #e1f5fe; /* Light blue for treble clef */
+    background-color: #e1f5fe;
+    /* Light blue for treble clef */
 }
 
 .piano-keyboard[data-clef="bass"] {
-    background-color: #d4e6f1; /* Slightly different blue for bass clef */
+    background-color: #d4e6f1;
+    /* Slightly different blue for bass clef */
 }
 
 .keyboard-keys {
@@ -276,13 +278,15 @@ h1 {
     align-items: center;
 }
 
-#profile-section, #level-section {
+#profile-section,
+#level-section {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-#profile-name-display, #level-name-display {
+#profile-name-display,
+#level-name-display {
     font-size: 16px;
     font-weight: bold;
     color: #2c3e50;
@@ -292,7 +296,8 @@ h1 {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-#profile-name, #level-name {
+#profile-name,
+#level-name {
     color: #3498db;
     font-style: italic;
 }
@@ -362,7 +367,8 @@ h1 {
     font-size: 14px;
 }
 
-#streak-required, #speed-required {
+#streak-required,
+#speed-required {
     font-weight: bold;
     color: #e74c3c;
 }
@@ -414,6 +420,7 @@ h1 {
         transform: translateY(-100%) rotate(0deg);
         opacity: 1;
     }
+
     100% {
         transform: translateY(100vh) rotate(720deg);
         opacity: 0;
@@ -425,10 +432,12 @@ h1 {
         transform: scale(0) rotate(0deg);
         opacity: 0;
     }
+
     50% {
         transform: scale(1.2) rotate(180deg);
         opacity: 1;
     }
+
     100% {
         transform: scale(1) rotate(360deg);
         opacity: 0;
@@ -471,9 +480,11 @@ h1 {
         transform: translateY(-50px) rotate(0deg) scale(0.5);
         opacity: 0;
     }
+
     10% {
         opacity: 1;
     }
+
     100% {
         transform: translateY(100vh) rotate(720deg) scale(1.5);
         opacity: 0;
@@ -500,13 +511,23 @@ h1 {
 }
 
 @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes fade-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
 }
 
 .level-up-container {
@@ -526,9 +547,11 @@ h1 {
         transform: scale(0.5);
         opacity: 0;
     }
+
     80% {
         transform: scale(1.1);
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
@@ -563,10 +586,12 @@ h1 {
         transform: scale(1);
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
+
     50% {
         transform: scale(1.05);
         text-shadow: 0 5px 15px rgba(255, 255, 255, 0.7);
     }
+
     100% {
         transform: scale(1);
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -597,9 +622,11 @@ h1 {
     from {
         transform: rotate(0deg) scale(1);
     }
+
     50% {
         transform: rotate(180deg) scale(1.2);
     }
+
     to {
         transform: rotate(360deg) scale(1);
     }
@@ -895,13 +922,15 @@ button:hover {
     border: 1px solid #b8e0ed;
 }
 
-#profile-name-display, #level-name-display {
+#profile-name-display,
+#level-name-display {
     font-size: 16px;
     font-weight: bold;
     color: #2c3e50;
 }
 
-#profile-name, #level-name {
+#profile-name,
+#level-name {
     color: #3498db;
     font-style: italic;
 }
@@ -1020,7 +1049,9 @@ button:hover {
     font-size: 16px;
 }
 
-.save-profile-button, .delete-profile-button, .cancel-edit-button {
+.save-profile-button,
+.delete-profile-button,
+.cancel-edit-button {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
@@ -1113,7 +1144,8 @@ button:hover {
     margin-top: 15px;
 }
 
-#save-profile-button, #delete-profile-button {
+#save-profile-button,
+#delete-profile-button {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
@@ -1172,7 +1204,7 @@ button:hover {
     .white-key {
         width: 65px;
     }
-    
+
     .black-key {
         width: 39px;
     }
@@ -1182,7 +1214,7 @@ button:hover {
     .white-key {
         width: 75px;
     }
-    
+
     .black-key {
         width: 45px;
     }
@@ -1192,7 +1224,7 @@ button:hover {
     .white-key {
         width: 95px;
     }
-    
+
     .black-key {
         width: 57px;
     }
@@ -1200,9 +1232,18 @@ button:hover {
 
 /* Green flash animation for streak display */
 @keyframes flash-green {
-    0% { box-shadow: 0 0 0 0px rgba(46, 204, 113, 0); }
-    50% { box-shadow: 0 0 20px 10px rgba(46, 204, 113, 0.7); background-color: rgba(46, 204, 113, 0.3); }
-    100% { box-shadow: 0 0 0 0px rgba(46, 204, 113, 0); }
+    0% {
+        box-shadow: 0 0 0 0px rgba(46, 204, 113, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 10px rgba(46, 204, 113, 0.7);
+        background-color: rgba(46, 204, 113, 0.3);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0px rgba(46, 204, 113, 0);
+    }
 }
 
 .flash-green {
@@ -1240,8 +1281,15 @@ button:hover {
 }
 
 @keyframes modal-fade-in {
-    0% { opacity: 0; transform: translateY(-20px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .error-message {
@@ -1282,41 +1330,294 @@ button:hover {
 
 /* Class to make links look like buttons */
 .button-style-link {
-    display: inline-block; /* Needed for padding/margin on anchor */
+    display: inline-block;
+    /* Needed for padding/margin on anchor */
     padding: 10px 20px;
-    background-color: #3498db; /* Match button style */
+    background-color: #3498db;
+    /* Match button style */
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 18px;
-    text-decoration: none; /* Remove underline from link */
+    text-decoration: none;
+    /* Remove underline from link */
     transition: background-color 0.3s;
 }
 
 .button-style-link:hover {
-    background-color: #2980b9; /* Match button hover style */
-    color: white; /* Ensure text remains white on hover */
-} 
+    background-color: #2980b9;
+    /* Match button hover style */
+    color: white;
+    /* Ensure text remains white on hover */
+}
+
 /* Personal Record Display Styles */
 .stats-value.record {
-    margin-left: 8px; /* Add some space between streak and record */
-    color: #7f8c8d; /* Subdued color for the record */
-    font-size: 14px; /* Slightly smaller font size */
-    font-weight: normal; /* Normal weight */
-    display: inline-block; /* Needed for animation */
-    padding: 2px 5px; /* Add slight padding */
-    border-radius: 4px; /* Rounded corners */
-    transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+    margin-left: 8px;
+    /* Add some space between streak and record */
+    color: #7f8c8d;
+    /* Subdued color for the record */
+    font-size: 14px;
+    /* Slightly smaller font size */
+    font-weight: normal;
+    /* Normal weight */
+    display: inline-block;
+    /* Needed for animation */
+    padding: 2px 5px;
+    /* Add slight padding */
+    border-radius: 4px;
+    /* Rounded corners */
+    transition: background-color 0.3s, color 0.3s;
+    /* Smooth transitions */
 }
 
 /* Yellow flash animation for new record */
 @keyframes flashYellowAnimation {
-    0% { box-shadow: 0 0 0 0px rgba(243, 156, 18, 0); background-color: rgba(243, 156, 18, 0); }
-    50% { box-shadow: 0 0 15px 8px rgba(243, 156, 18, 0.6); background-color: rgba(243, 156, 18, 0.4); color: #333; }
-    100% { box-shadow: 0 0 0 0px rgba(243, 156, 18, 0); background-color: rgba(243, 156, 18, 0); }
+    0% {
+        box-shadow: 0 0 0 0px rgba(243, 156, 18, 0);
+        background-color: rgba(243, 156, 18, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 15px 8px rgba(243, 156, 18, 0.6);
+        background-color: rgba(243, 156, 18, 0.4);
+        color: #333;
+    }
+
+    100% {
+        box-shadow: 0 0 0 0px rgba(243, 156, 18, 0);
+        background-color: rgba(243, 156, 18, 0);
+    }
 }
 
 .flash-yellow {
     animation: flashYellowAnimation 0.7s ease-out;
+}
+
+/* Violin Fingerboard Styles */
+.violin-fingerboard-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+}
+
+.violin-fingerboard {
+    display: flex;
+    flex-direction: column;
+    background-color: #3e2723;
+    /* Dark wood color */
+    padding: 30px 60px;
+    /* Increased padding */
+    border-radius: 30px 5px 5px 30px;
+    /* Round Left (Nut), Sharp Right (Bridge) */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    width: 600px;
+    /* Increased width significantly */
+}
+
+/* Wood texture effect */
+.violin-fingerboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(45deg,
+            rgba(255, 255, 255, 0.02),
+            rgba(255, 255, 255, 0.02) 1px,
+            transparent 1px,
+            transparent 10px);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.violin-string {
+    display: flex;
+    height: 80px;
+    /* Increased height of each string area */
+    align-items: center;
+    position: relative;
+}
+
+/* The actual string line */
+.violin-string::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    right: -20px;
+    top: 50%;
+    height: 2px;
+    background: linear-gradient(to right, #silver, #e0e0e0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* String specific thicknesses */
+.string-G::before {
+    height: 4px;
+    background: #c0c0c0;
+}
+
+.string-D::before {
+    height: 3px;
+    background: #d3d3d3;
+}
+
+.string-A::before {
+    height: 2px;
+    background: #e0e0e0;
+}
+
+.string-E::before {
+    height: 1px;
+    background: #ffffff;
+}
+
+.string-label {
+    position: absolute;
+    left: -35px;
+    width: 30px;
+    text-align: right;
+    color: #FFD700;
+    /* Gold to match note labels */
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 60px;
+    /* Match string height */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.fingerboard-zone {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    /* border-right: 1px solid rgba(255, 255, 255, 0.05); */
+    /* Faint fret lines for visual aid, though violin is fretless */
+    transition: background-color 0.1s;
+}
+
+.fingerboard-zone:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.fingerboard-zone.active-zone:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Open string marker */
+.fingerboard-zone.open-string {
+    border-right: 6px solid #e0e0e0;
+    /* Nut - lighter color to stand out */
+    flex: 0.5;
+    /* Nut area is smaller */
+    background-color: rgba(0, 0, 0, 0.2);
+    /* Darker background for nut area */
+}
+
+/* Position Markers (Tapes) */
+.fingerboard-zone.marker-zone::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 5%;
+    bottom: 5%;
+    width: 3px;
+    background-color: rgba(255, 255, 255, 0.4);
+    /* Tape marker - brighter */
+    pointer-events: none;
+    box-shadow: 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Note Indicator (when clicked or hovered) */
+.note-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-color: #3498db;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    box-shadow: 0 0 8px #3498db;
+}
+
+.fingerboard-zone:active .note-indicator {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Note name displayed on the fingerboard */
+.note-on-fingerboard {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #FFD700;
+    /* Gold color for better visibility */
+    font-size: 14px;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    /* Strong shadow to separate from string */
+}
+
+/* Hide note name when hovering (so the indicator can be seen clearly) */
+.fingerboard-zone:hover .note-on-fingerboard {
+    opacity: 0.2;
+}
+
+/* Open string note name - removed as we have side labels now */
+.open-string .note-indicator {
+    left: 50%;
+    /* Center it */
+}
+
+/* Setting group styles */
+.setting-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.setting-group label {
+    font-weight: bold;
+    color: #333;
+    margin-right: 10px;
+}
+
+/* Instrument Selection Buttons */
+.setting-group button {
+    padding: 8px 16px;
+    margin-left: 5px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.setting-group button:hover {
+    background-color: #e0e0e0;
+}
+
+.setting-group button.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #2980b9;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
 }
